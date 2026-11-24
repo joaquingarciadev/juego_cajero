@@ -202,6 +202,7 @@ button:focus-visible,input:focus-visible+span{outline:3px solid var(--gold);outl
     <p id="dayStats"></p>
     <p><b>Elegí una mejora para mañana:</b></p>
     <div class="perks" id="perkOpts"></div>
+    <button class="big alt" id="reroll" hidden>Volver a sortear</button>
   </div>
 </div>
 
@@ -440,6 +441,13 @@ const ICON={
   calc:'<rect x="5" y="3" width="14" height="18" rx="2"/><path d="M8 7h8M8 12h.01M12 12h.01M16 12h.01M8 16h.01M12 16h.01M16 16h.01"/>',
   racha:'<path d="M12 3c.5 3.5 5 5.5 5 10.5a5 5 0 0 1-10 0c0-2.6 1.6-3.9 2.2-6 1.8 1.2 2.8 2.8 2.8 4.5 1-1.6 1-4.9 0-9z"/>',
   ojo:'<path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="3"/>',
+  suerte:'<circle cx="9" cy="9" r="3.3"/><circle cx="15" cy="9" r="3.3"/><circle cx="9" cy="15" r="3.3"/><circle cx="15" cy="15" r="3.3"/><path d="M16.5 16.5L21 21"/>',
+  opciones:'<rect x="2.5" y="6" width="8" height="13" rx="1.5"/><rect x="13.5" y="6" width="8" height="13" rx="1.5"/><path d="M6.5 3h11"/>',
+  reroll:'<path d="M20 12a8 8 0 1 1-2.3-5.7"/><path d="M20 4v5h-5"/>',
+  perfecto:'<circle cx="12" cy="12" r="8.5"/><path d="M8 12.5l2.7 2.7L16 9.5"/>',
+  iman:'<path d="M6 3v8a6 6 0 0 0 12 0V3"/><path d="M6 7h3.5M14.5 7H18"/>',
+  respiro:'<path d="M3 9h11a3 3 0 1 0-3-3"/><path d="M3 14h15a3 3 0 1 1-3 3"/>',
+  angel:'<ellipse cx="12" cy="4.5" rx="5" ry="1.8"/><path d="M12 21s-6.5-3.8-8-7.6c-1-2.6.7-5.4 3.4-5.4 1.9 0 3.3 1.1 4.6 2.5 1.3-1.4 2.7-2.5 4.6-2.5 2.7 0 4.4 2.8 3.4 5.4C18.5 17.2 12 21 12 21z"/>',
   doble:'<path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/>'};
 const PERKS=[
   {id:'pac',tier:'comun',name:'Más paciencia',desc:'Cada cliente te espera 3 s más.',max:3},
@@ -451,7 +459,14 @@ const PERKS=[
   {id:'calc',tier:'epica',name:'Calculadora',desc:'Una vez por día te muestra el vuelto. Ese cliente da la mitad de puntos.',max:2},
   {id:'racha',tier:'epica',name:'Racha caliente',desc:'La racha puede multiplicar los puntos hasta ×2,5.',max:1},
   {id:'ojo',tier:'epica',name:'Ojo de cajero',desc:'Cuando llevan varios productos, ves el total sumado.',max:1},
-  {id:'doble',tier:'leg',name:'Cajero del mes',desc:'Todos los puntos ×1,5 por el resto del turno.',max:1}
+  {id:'reroll',tier:'comun',name:'Otra mano',desc:'Al terminar el día podés volver a sortear las mejoras una vez más por nivel.',max:2},
+  {id:'iman',tier:'comun',name:'Imán de especiales',desc:'Vienen 15% más clientes especiales, que dan más puntos.',max:2},
+  {id:'suerte',tier:'rara',name:'Suerte',desc:'Aparecen más seguido las mejoras raras, épicas y legendarias.',max:3},
+  {id:'respiro',tier:'rara',name:'Respiro',desc:'El tiempo de cada cliente empieza a correr 2 s después.',max:2},
+  {id:'perfecto',tier:'rara',name:'Día perfecto',desc:'Si no perdés ningún cliente en el día, recuperás una vida.',max:1},
+  {id:'opciones',tier:'epica',name:'Más opciones',desc:'Al terminar cada día elegís entre 4 mejoras en vez de 3.',max:1},
+  {id:'doble',tier:'leg',name:'Cajero del mes',desc:'Todos los puntos ×1,5 por el resto del turno.',max:1},
+  {id:'angel',tier:'leg',name:'Ángel de la guarda',desc:'La primera vez que perderías tu última vida, te salvás.',max:1}
 ];
 const picon=id=>`<svg viewBox="0 0 24 24" aria-hidden="true">${ICON[id]}</svg>`;
 /* eventos que pueden tocar al empezar un día */
@@ -504,15 +519,15 @@ function payBig(p,r){const B=r.pay[r.pay.length-1],n=Math.ceil((p+1)/B);return n
 function start(){
   ['#menu','#over','#pause','#dayEnd','#shop'].forEach(s=>$(s).hidden=true);ac();
   G.sid++;G.rules=rules(modeIdx);
-  Object.assign(G,{on:true,paused:false,active:false,score:0,streak:0,bestStreak:0,lives:lvl('vida')?4:3,slots:3,served:0,mistakes:0,times:[],helps:0,day:0,perks:{},event:null,runCoins:0});
-  if(lvl('start')){const p=pick(PERKS.filter(p=>p.id!=='vida'&&p.tier!=='leg'));G.perks[p.id]=1;G.startPerk=p.name}else G.startPerk=null;
+  Object.assign(G,{angelUsed:false,on:true,paused:false,active:false,score:0,streak:0,bestStreak:0,lives:lvl('vida')?4:3,slots:3,served:0,mistakes:0,times:[],helps:0,day:0,perks:{},event:null,runCoins:0});
+  if(lvl('start')){const p=pick(PERKS.filter(p=>!['vida','reroll','perfecto'].includes(p.id)&&p.tier!=='leg'));G.perks[p.id]=1;G.startPerk=p.name}else G.startPerk=null;
   renderDrawer();hud();ui.bar.style.transform='scaleX(1)';
   // el cliente del menú se saca mientras la ventana todavía lo tapa: el primero entra caminando
   if(G.cust){disposeObj(G.cust);G.cust=null}
   clearTable();startDay()}
 function startDay(){
   G.day++;G.dayDone=0;G.dayPts=0;G.dayServed=0;
-  G.seguroLeft=has('seguro');G.esperaLeft=has('espera');G.calcLeft=has('calc')+lvl('calc');
+  G.dayLost=0;G.seguroLeft=has('seguro');G.esperaLeft=has('espera');G.calcLeft=has('calc')+lvl('calc');
   G.event=G.day>=2&&Math.random()<.45?pick(EVENTS):null;
   const dim=G.event&&G.event.id==='luz';hemi.intensity=dim?.3:.8;sun.intensity=dim?.25:.85;warm.intensity=dim?.9:.45;
   updSum();calcUi();info();hud();
@@ -523,7 +538,7 @@ function clearTable(){G.givenMesh.forEach(disposeObj);G.others.forEach(disposeOb
 function next(){
   if(!G.on)return;const m=MODES[modeIdx],r=G.rules,d=G.day,ev=G.event||{};
   let n=rnd(m.items[0],m.items[1]);if(d>=4&&Math.random()<Math.min(.5,(d-3)*.15))n=Math.min(n+1,m.items[1]>1?3:2);
-  const sp=Math.random()<Math.min(.5,.1+.07*(d-1))?pick(SPECIALS):null;
+  const sp=Math.random()<Math.min(.65,.1+.07*(d-1)+.15*has('iman'))?pick(SPECIALS):null;
   const span=Math.min(1,.6+.1*(d-1)),hi=Math.max(r.lo,Math.round((r.lo+(r.hi-r.lo)*span)*(ev.price||1)/r.u)*r.u);
   let items,total,pay;
   for(let tries=0;tries<80;tries++){const used=new Set();items=[];
@@ -532,7 +547,7 @@ function next(){
     pay=(sp&&sp.id==='abuela'&&payMany(total,r))||(sp&&sp.id==='millo'&&payBig(total,r))||payFor(total,r.pay);
     if(canMake(sumOf(pay)-total,r.d,r.u))break}
   const T=(Math.max(m.Tmin,m.T0-(d-1)*2)+has('pac')*3+lvl('pac')*2)*(ev.pat||1)*(sp?sp.pat:1);
-  G.cur={items,total,orig:total,pay,paid:sumOf(pay),helped:false,sp,T,tLeft:T};
+  G.cur={items,total,orig:total,pay,paid:sumOf(pay),helped:false,sp,T,tLeft:T,grace:2*has('respiro')};
   const c=customer(sp?sp.look:undefined);G.cust=c;mood(c,'happy');ui.bubble.classList.remove('on');drawScreen('Total','· · ·');info();calcUi();
   walkTo(c,0,()=>{
     if(G.cust!==c)return;
@@ -584,18 +599,25 @@ function win(round){
 function timeout(){
   const c=G.cur,cust=G.cust,u=cust.userData;
   if(G.esperaLeft>0&&!c.waited){G.esperaLeft--;c.waited=true;c.tLeft=6;c.T=Math.max(c.T,6);SFX.help();say('Bueno… te espero un poquito más.',1800);floatTxt('+6 s');return}
-  G.active=false;ui.app.classList.add('locked');G.lives--;G.streak=0;hud();SFX.lose();buzz(200);
+  G.active=false;ui.app.classList.add('locked');G.lives--;G.dayLost++;G.streak=0;
+  if(G.lives<=0&&has('angel')&&!G.angelUsed){G.angelUsed=true;G.lives=1;later(()=>floatTxt('¡Ángel de la guarda!'),600)}
+  hud();SFX.lose();buzz(200);
   say('Ya fue, compro en otro lado.',1600);mood(cust,'angry');u.anger=1;
   later(()=>{G.givenMesh.forEach(o=>fly(o,CAM_SPOT(),.3,.1,()=>disposeObj(o)));G.others.forEach(o=>stash(o,o.geometry===billGeo?-.28:.3));G.givenMesh=[];G.others=[];G.given=[];updSum();slipIdle()},500);
   later(()=>{walkTo(cust,-4.3,()=>disposeObj(cust));if(G.lives<=0)later(gameOver,400);else afterCustomer()},1300)}
 function afterCustomer(){G.dayDone++;G.cur=null;info();calcUi();if(G.dayDone>=PER_DAY)later(endDay,700);else later(next,450)}
+function rollPerks(){
+  const L=has('suerte'),w=p=>TIERS[p.tier].w*({comun:1,rara:1+.3*L,epica:1+.6*L,leg:1+L}[p.tier]);
+  const opts=PERKS.filter(p=>has(p.id)<p.max&&(p.id!=='vida'||G.lives<5)&&(p.id!=='ojo'||MODES[modeIdx].items[1]>1||G.day>=3));
+  const out=[],n=has('opciones')?4:3;while(out.length<n&&opts.length){let r=Math.random()*sumOf(opts.map(w)),i=0;while((r-=w(opts[i]))>0&&i<opts.length-1)i++;out.push(opts.splice(i,1)[0])}
+  $('#perkOpts').innerHTML=out.map(p=>`<button class="perk t-${p.tier}" data-id="${p.id}"><i class="pi">${picon(p.id)}</i><div><small class="tier">${TIERS[p.tier].name}</small><b>${p.name}${has(p.id)?' · nivel '+(has(p.id)+1):''}</b><span>${p.desc}</span></div></button>`).join('');
+  const rb=$('#reroll');rb.hidden=!(G.rerollLeft>0);rb.textContent=`Volver a sortear (${G.rerollLeft})`}
 function endDay(){
   if(!G.on)return;G.cust=null;ui.bubble.classList.remove('on');
-  const opts=PERKS.filter(p=>has(p.id)<p.max&&(p.id!=='vida'||G.lives<5)&&(p.id!=='ojo'||MODES[modeIdx].items[1]>1||G.day>=3));
-  const three=[];while(three.length<3&&opts.length){let r=Math.random()*sumOf(opts.map(p=>TIERS[p.tier].w)),i=0;while((r-=TIERS[opts[i].tier].w)>0)i++;three.push(opts.splice(i,1)[0])}
+  let extra='';if(has('perfecto')&&G.dayLost===0&&G.lives<5){G.lives++;hud();extra=' · Día perfecto: +1 vida'}
   $('#dayTitle').textContent=`Día ${G.day} terminado`;
-  $('#dayStats').textContent=`${G.dayServed} de ${PER_DAY} clientes atendidos · +${G.dayPts.toLocaleString('es-AR')} puntos`;
-  $('#perkOpts').innerHTML=three.map(p=>`<button class="perk t-${p.tier}" data-id="${p.id}"><i class="pi">${picon(p.id)}</i><div><small class="tier">${TIERS[p.tier].name}</small><b>${p.name}${has(p.id)?' · nivel '+(has(p.id)+1):''}</b><span>${p.desc}</span></div></button>`).join('');
+  $('#dayStats').textContent=`${G.dayServed} de ${PER_DAY} clientes atendidos · +${G.dayPts.toLocaleString('es-AR')} puntos${extra}`;
+  G.rerollLeft=has('reroll');rollPerks();
   SFX.ok();$('#dayEnd').hidden=false}
 function choosePerk(id){if(!G.on)return;G.perks[id]=(G.perks[id]||0)+1;if(id==='vida'){G.lives=Math.min(5,G.lives+1)}$('#dayEnd').hidden=true;hud();startDay()}
 function gameOver(){
@@ -624,6 +646,7 @@ $('#shopBtn').addEventListener('click',()=>{renderShop();$('#menu').hidden=true;
 $('#shopClose').addEventListener('click',()=>{$('#shop').hidden=true;$('#menu').hidden=false});
 $('#perkOpts').addEventListener('click',e=>{const b=e.target.closest('.perk');if(b)choosePerk(b.dataset.id)});
 $('#calcBtn').addEventListener('click',useCalc);
+$('#reroll').addEventListener('click',()=>{if(G.rerollLeft>0){G.rerollLeft--;SFX.bill();rollPerks()}});
 
 let drag=null,noClick=false;
 ui.bills.addEventListener('click',e=>{if(noClick){noClick=false;return}const b=e.target.closest('.bill');if(b)addBill(+b.dataset.v)});
@@ -649,7 +672,7 @@ function frame(now){
   if(!G.paused){
     tweens=tweens.filter(tw=>{tw.t+=dt;const k=Math.min(1,tw.t/tw.dur);tw.fn(k);if(k>=1){tw.done&&tw.done();return false}return true});
     S.children.forEach(o=>{if(o.userData&&o.userData.legs)updCust(o,dt)});
-    if(G.active){const c=G.cur;c.tLeft-=dt;const r=Math.max(0,c.tLeft/c.T);ui.bar.style.transform=`scaleX(${r})`;ui.bar.style.background=r>.5?'#3ec27a':r>.25?'#f2b33d':'#e8483b';
+    if(G.active){const c=G.cur;if(c.grace>0)c.grace-=dt;else c.tLeft-=dt;const r=Math.max(0,c.tLeft/c.T);ui.bar.style.transform=`scaleX(${r})`;ui.bar.style.background=r>.5?'#3ec27a':r>.25?'#f2b33d':'#e8483b';
       const u=G.cust.userData;u.anger+=(Math.max(0,(.5-r)*2)-u.anger)*Math.min(1,dt*3);if(u.shake===0)mood(G.cust,r>.5?'happy':r>.25?'meh':'angry');
       if(r<.25&&now-lastTick>1000){lastTick=now;SFX.tick()}
       if(c.tLeft<=0)timeout()}
