@@ -230,9 +230,9 @@ const store={get(k,d){try{const v=localStorage.getItem('cajero3d.'+k);return v==
 /* ---------- reglas ---------- */
 const ALL=[10,20,50,100,200,500,1000,2000,10000,20000],POPULAR=[500,1000,2000,10000];
 const MODES=[
-  {name:'Fácil',drawer:[10,20,50,100,200,500],items:[1,1],lo:0,hi:2,T0:30,Tmin:12,mult:1},
-  {name:'Normal',drawer:[50,100,200,500,1000,2000],items:[1,1],lo:.27,hi:5,T0:28,Tmin:11,mult:2},
-  {name:'Pro',drawer:[10,20,50,100,200,500,1000,2000,10000],items:[2,3],lo:.03,hi:.7,T0:40,Tmin:16,mult:3}
+  {name:'Fácil',drawer:[10,20,50,100,200,500],items:[1,1],lo:0,hi:2,T0:22,Tmin:12,mult:1},
+  {name:'Normal',drawer:[50,100,200,500,1000,2000],items:[1,1],lo:.27,hi:5,T0:20,Tmin:11,mult:2},
+  {name:'Pro',drawer:[10,20,50,100,200,500,1000,2000,10000],items:[2,3],lo:.03,hi:.7,T0:30,Tmin:16,mult:3}
 ];
 let custom=store.get('bills',[null,null,null]);
 const gcd=(a,b)=>b?gcd(b,a%b):a;
@@ -485,8 +485,8 @@ function start(){
   Object.assign(G,{on:true,paused:false,active:false,score:0,streak:0,bestStreak:0,lives:lvl('vida')?4:3,slots:3,served:0,mistakes:0,times:[],helps:0,day:0,perks:{},event:null,runCoins:0});
   if(lvl('start')){const p=pick(PERKS.filter(p=>p.id!=='vida'));G.perks[p.id]=1;G.startPerk=p.name}else G.startPerk=null;
   renderDrawer();hud();ui.bar.style.transform='scaleX(1)';
-  G.reuse=G.cust&&G.cust.userData.tx===0?G.cust:null;
-  if(G.cust&&!G.reuse){const c=G.cust;mood(c,'happy');walkTo(c,4.3,()=>disposeObj(c))}G.cust=null;
+  // el cliente del menú se saca mientras la ventana todavía lo tapa: el primero entra caminando
+  if(G.cust){disposeObj(G.cust);G.cust=null}
   clearTable();startDay()}
 function startDay(){
   G.day++;G.dayDone=0;G.dayPts=0;G.dayServed=0;
@@ -496,13 +496,13 @@ function startDay(){
   updSum();calcUi();info();hud();
   const sub=G.event?`<span>${G.event.name}: ${G.event.desc}</span>`:G.day===1&&G.startPerk?`<span>Arrancás con ${G.startPerk}</span>`:`<span>${PER_DAY} clientes. ¡A cobrar!</span>`;
   ui.banner.innerHTML=`<b>Día ${G.day}</b>${sub}`;ui.banner.classList.remove('on');void ui.banner.offsetWidth;ui.banner.classList.add('on');
-  later(()=>ui.banner.classList.remove('on'),2300);later(next,G.reuse?900:1400)}
+  G.bannerEnd=performance.now()+2300;later(()=>ui.banner.classList.remove('on'),2300);later(next,250)}
 function clearTable(){G.givenMesh.forEach(disposeObj);G.others.forEach(disposeObj);G.given=[];G.givenMesh=[];G.others=[];slipIdle()}
 function next(){
   if(!G.on)return;const m=MODES[modeIdx],r=G.rules,d=G.day,ev=G.event||{};
   let n=rnd(m.items[0],m.items[1]);if(d>=4&&Math.random()<Math.min(.5,(d-3)*.15))n=Math.min(n+1,m.items[1]>1?3:2);
-  const sp=d>=2&&Math.random()<Math.min(.5,.2+.06*d)?pick(SPECIALS):null;
-  const span=Math.min(1,.4+.15*(d-1)),hi=Math.max(r.lo,Math.round((r.lo+(r.hi-r.lo)*span)*(ev.price||1)/r.u)*r.u);
+  const sp=Math.random()<Math.min(.5,.1+.07*(d-1))?pick(SPECIALS):null;
+  const span=Math.min(1,.6+.1*(d-1)),hi=Math.max(r.lo,Math.round((r.lo+(r.hi-r.lo)*span)*(ev.price||1)/r.u)*r.u);
   let items,total,pay;
   for(let tries=0;tries<80;tries++){const used=new Set();items=[];
     while(items.length<n){const p=pick(PRODUCTS);if(used.has(p[2]))continue;used.add(p[2]);items.push({name:p[0],art:p[1],kind:p[2],price:rnd(r.lo/r.u,hi/r.u)*r.u})}
@@ -511,15 +511,16 @@ function next(){
     if(canMake(sumOf(pay)-total,r.d,r.u))break}
   const T=(Math.max(m.Tmin,m.T0-(d-1)*2)+has('pac')*3+lvl('pac')*2)*(ev.pat||1)*(sp?sp.pat:1);
   G.cur={items,total,orig:total,pay,paid:sumOf(pay),helped:false,sp,T,tLeft:T};
-  const c=G.reuse||customer(sp?sp.look:undefined);G.reuse=null;G.cust=c;mood(c,'happy');ui.bubble.classList.remove('on');drawScreen('Total','· · ·');info();calcUi();
+  const c=customer(sp?sp.look:undefined);G.cust=c;mood(c,'happy');ui.bubble.classList.remove('on');drawScreen('Total','· · ·');info();calcUi();
   walkTo(c,0,()=>{
     if(G.cust!==c)return;
     items.forEach((it,i)=>{const o=product(it.kind);o.position.set(.25,1.25,-1.2);o.rotation.y=Math.random()*6;it.mesh=o;G.others.push(o);fly(o,V(.36+i*.17,1.0,-.74+(i%2)*.08),.45+i*.08,.18)});
     pay.forEach((v,i)=>{const o=billMesh(v);o.position.set(-.25,1.2,-1.2);G.others.push(o);fly(o,V(-.3+(i%5)*.035,1.015+i*.007,-.78+Math.floor(i/5)*.06),.45+i*.05,.15,null,.35+i*.12)});
+    later(()=>{if(G.cust!==c)return;
     say(sp?sp.hi:n>1?pick(['¡Hola! Me llevo todo esto.','Cobrame esto, porfa.','Buenas, ¿cuánto es todo?']):`¡Hola! Me das ${items[0].art}.`,sp?2400:0);
     if(sp&&sp.id!=='regatea')later(()=>{if(G.cust===c&&G.active)say(n>1?'Es todo esto.':`Me llevo ${items[0].art}.`)},2500);
     if(sp&&sp.id==='regatea')later(haggle,1900);
-    drawScreen('Total',n>1&&!has('ojo')?'¿?':fmt(total));ticket();G.active=true;G.t0=performance.now();ui.app.classList.remove('locked');info()})}
+    drawScreen('Total',n>1&&!has('ojo')?'¿?':fmt(total));ticket();G.active=true;G.t0=performance.now();ui.app.classList.remove('locked');info()},Math.max(0,(G.bannerEnd||0)-performance.now()))})}
 function haggle(){const c=G.cur;if(!G.active||!c||c.haggled)return;const r=G.rules;
   for(const f of[.9,.85,.8]){const nt=Math.max(r.u,Math.round(c.total*f/r.u)*r.u);if(nt<c.total&&canMake(c.paid-nt,r.d,r.u)){c.total=nt;c.haggled=true;break}}
   if(!c.haggled)return;SFX.help();say(`Dejámelo en ${fmt(c.total)}, ¿dale? Gracias.`,2600);ticket();drawScreen('Total',fmt(c.total));calcUi()}
