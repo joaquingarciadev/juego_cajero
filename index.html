@@ -56,6 +56,9 @@ button:focus-visible,input:focus-visible+span{outline:3px solid var(--gold);outl
 .bill::before{content:"";position:absolute;left:8px;top:50%;width:30px;height:30px;margin-top:-15px;border-radius:50%;background:var(--i);opacity:.22}
 .bill b{position:relative;white-space:nowrap}
 .bill:active{transform:translateY(2px) scale(.97)}
+.bill{touch-action:none}
+.ghost{position:fixed;left:0;top:0;z-index:30;pointer-events:none;box-shadow:inset 0 0 0 3px var(--b),inset 0 0 0 5px var(--i),0 12px 24px #0007;opacity:.95;display:grid;place-items:center}
+.ghost.drop{outline:3px solid var(--gold);outline-offset:2px}
 .bill em{position:absolute;right:5px;top:4px;font-style:normal;font-size:12px;background:var(--i);color:var(--b);border-radius:9px;padding:0 6px;line-height:18px}
 #give{display:block;width:100%;height:58px;margin-top:8px;border-radius:14px;background:var(--red);font-weight:700;font-size:22px;box-shadow:0 5px 0 var(--red2);transition:transform .06s,filter .2s}
 #give:active{transform:translateY(4px);box-shadow:0 1px 0 var(--red2)}
@@ -140,7 +143,7 @@ button:focus-visible,input:focus-visible+span{outline:3px solid var(--gold);outl
     <label class="tog"><input type="checkbox" id="expert"><span></span><div>Ocultar la suma del vuelto <small>(puntos ×1,5)</small></div></label>
     <label class="tog"><input type="checkbox" id="snd" checked><span></span><div>Sonido</div></label>
     <button class="big" id="play">Abrir la caja</button>
-    <p class="how">Tocá billetes para armar el vuelto y apretá «Dar vuelto». Si el cliente te ofrece plata para redondear, recalculá. Cada 5 clientes tenés menos tiempo; con 3 perdidos se termina el turno.</p>
+    <p class="how">Tocá o arrastrá billetes al mostrador para armar el vuelto y apretá «Dar vuelto». Si el cliente te ofrece plata para redondear, recalculá. Cada 5 clientes tenés menos tiempo; con 3 perdidos se termina el turno.</p>
   </div>
 </div>
 
@@ -231,12 +234,6 @@ floorT.wrapS=floorT.wrapT=T.RepeatWrapping;floorT.repeat.set(12,12);
 const floor=mk(new T.PlaneGeometry(24,24),M('#fff',{map:floorT,roughness:.9}),0,0,0,S,true);floor.rotation.x=-Math.PI/2;floor.receiveShadow=true;
 mk(new T.PlaneGeometry(24,8),M('#2f8a80'),0,4,-4.2,S,true);
 mk(new T.BoxGeometry(24,.9,.1),M('#215f59'),0,.45,-4.14,S,true);
-mk(new T.BoxGeometry(24,.12,.12),M('#c98a4b'),0,2.62,-4.12,S,true);
-const signT=canvasTex(512,128,(g,w,h)=>{g.fillStyle='#e8483b';g.fillRect(0,0,w,h);g.strokeStyle='#fff8ec';g.lineWidth=6;g.strokeRect(10,10,w-20,h-20);g.fillStyle='#fff8ec';g.font='700 76px Fredoka, sans-serif';g.textAlign='center';g.textBaseline='middle';g.fillText('Almacén',w/2,h/2+4)});
-mk(new T.BoxGeometry(1.9,.5,.05),[M('#b93226'),M('#b93226'),M('#b93226'),M('#b93226'),new T.MeshBasicMaterial({map:signT}),M('#b93226')],0,3.0,-4.08,S,true);
-const clockT=canvasTex(128,128,(g)=>{g.fillStyle='#fff8ec';g.beginPath();g.arc(64,64,62,0,7);g.fill();g.fillStyle='#1d2422';for(let i=0;i<12;i++){const a=i*Math.PI/6;g.fillRect(64+Math.cos(a)*50-3,64+Math.sin(a)*50-3,6,6)}g.strokeStyle='#1d2422';g.lineCap='round';g.lineWidth=7;g.beginPath();g.moveTo(64,64);g.lineTo(40,48);g.stroke();g.lineWidth=5;g.beginPath();g.moveTo(64,64);g.lineTo(90,40);g.stroke();g.fillStyle='#e8483b';g.beginPath();g.arc(64,64,6,0,7);g.fill()});
-{const ck=mk(new T.CylinderGeometry(.26,.26,.05,32),[M('#2b2f35'),new T.MeshBasicMaterial({map:clockT}),M('#2b2f35')],-1.6,3.0,-4.1,S,true);ck.rotation.x=Math.PI/2;ck.rotation.y=Math.PI/2;}
-{const cols=['#e8483b','#f2b33d','#2bb0a6','#fff8ec','#3d7fd1'],fl=new T.ConeGeometry(.07,.16,3);for(let i=0;i<34;i++){const x=-4.1+i*.25,f=mk(fl,M(cols[i%5]),x,3.3-Math.sin((i%8)/8*Math.PI)*.08,-4.05,S,true);f.rotation.z=Math.PI}}
 const boxCols=['#e8483b','#f2b33d','#f6f1e3','#3d7fd1','#7cc46b','#9a5cc4','#ff8a3d','#2bb0a6','#ffd2a8'],shelfM=M('#efe8da'),boxGeo=new T.BoxGeometry(1,1,1);
 for(const sx of[-2.55,0,2.55]){
   mk(new T.BoxGeometry(2.35,2.5,.08),M('#d8cfba'),sx,1.25,-4.04,S,true);
@@ -250,17 +247,15 @@ for(const sx of[-2.55,0,2.55]){
 const wood=M('#c98a4b',{roughness:.5});
 mk(new T.BoxGeometry(3.2,.95,.8),M('#e8483b',{roughness:.6}),0,.475,-.5);
 mk(new T.BoxGeometry(3.32,.06,.92),wood,0,.98,-.5);
-{const tg=new T.Group();tg.position.set(.05,1.01,-.32);S.add(tg);const tm=M('#394048',{roughness:.4,metalness:.3});
-mk(new T.BoxGeometry(.54,.012,.34),tm,0,.006,0,tg);mk(new T.BoxGeometry(.5,.004,.3),M('#2f7d5a',{roughness:.95}),0,.014,0,tg);
-for(const[w,d,x,z]of[[.54,.02,0,.16],[.54,.02,0,-.16],[.02,.34,.26,0],[.02,.34,-.26,0]])mk(new T.BoxGeometry(w,.035,d),tm,x,.02,z,tg);}
-const reg=new T.Group();reg.position.set(-.5,1.01,-.3);reg.rotation.y=.5;S.add(reg);
+mk(new T.BoxGeometry(.5,.025,.3),M('#394048',{roughness:.4,metalness:.3}),.05,1.02,-.32);
+const reg=new T.Group();reg.position.set(-.56,1.01,-.34);reg.rotation.y=.42;S.add(reg);
 mk(new T.BoxGeometry(.5,.2,.42),M('#2b2f35',{roughness:.4}),0,.1,0,reg);
 mk(new T.BoxGeometry(.44,.04,.22),M('#cfd4da'),0,.22,.06,reg);
 const scrT=canvasTex(256,150,()=>{});
 function drawScreen(label,val){const c=scrT.userData.c,g=c.getContext('2d');g.fillStyle='#0f2a1e';g.fillRect(0,0,256,150);g.fillStyle='#6df29a';g.textAlign='center';g.font='600 30px Fredoka, sans-serif';g.fillText(label,128,46);g.font='700 58px Fredoka, sans-serif';g.fillText(val,128,112);scrT.needsUpdate=true}
 drawScreen('Hola','$0');
 const scr=new T.Group();scr.position.set(0,.36,-.12);scr.rotation.x=-.3;reg.add(scr);
-mk(new T.BoxGeometry(.04,.22,.04),M('#2b2f35'),0,-.1,0,scr);
+mk(new T.BoxGeometry(.04,.16,.04),M('#2b2f35'),0,-.13,-.05,scr);
 const em=M('#222');mk(new T.BoxGeometry(.46,.28,.04),[em,em,em,em,new T.MeshBasicMaterial({map:scrT}),em],0,.06,0,scr);
 
 /* billetes 3D */
@@ -294,7 +289,7 @@ function customer(){
   const legs=[],arms=[];
   for(const s of[-1,1]){const l=new T.Group();l.position.set(s*.11,.84,0);b.add(l);mk(cyl(.075,.07,.78),M(pick(PANTS)),0,-.4,0,l);mk(new T.BoxGeometry(.13,.08,.22),M('#2a2a2a'),0,-.8,.04,l);legs.push(l)}
   const shirt=M(pick(SHIRTS));mk(cyl(.21,.25,.62,16),shirt,0,1.12,0,b);const sh=mk(new T.SphereGeometry(.215,16,10),shirt,0,1.42,0,b);sh.scale.y=.45;
-  const elbows=[];for(const s of[-1,1]){const a=new T.Group();a.position.set(s*.27,1.4,0);a.rotation.z=s*.1;b.add(a);mk(cyl(.058,.052,.3),shirt,0,-.15,0,a);mk(new T.SphereGeometry(.052,10,8),shirt,0,-.3,0,a);const e=new T.Group();e.position.y=-.3;a.add(e);mk(cyl(.05,.045,.26),skinM,0,-.13,0,e);const hd=mk(new T.SphereGeometry(.06,12,10),skinM,0,-.28,0,e);hd.scale.set(1,.8,1.15);arms.push(a);elbows.push(e)}
+  for(const s of[-1,1]){const a=new T.Group();a.position.set(s*.27,1.4,0);a.rotation.z=s*.12;b.add(a);mk(cyl(.055,.05,.52),shirt,0,-.26,0,a);mk(new T.SphereGeometry(.055,10,8),skinM,0,-.55,0,a);arms.push(a)}
   mk(cyl(.07,.07,.12),skinM,0,1.52,0,b);
   const head=new T.Group();head.position.set(0,1.68,0);b.add(head);
   mk(new T.SphereGeometry(.2,20,16),skinM,0,0,0,head);
@@ -308,13 +303,12 @@ function customer(){
   if(style==='cap'){cap(.214,pick(SHIRTS));mk(new T.BoxGeometry(.22,.02,.14),M('#2a2a2a'),0,.07,.2,head)}
   if(style==='chef'){cap(.212,hairC);mk(cyl(.15,.15,.16,16),M('#ffffff'),0,.22,-.01,head);const t=mk(new T.SphereGeometry(.17,14,10),M('#ffffff'),0,.33,-.01,head);t.scale.y=.65}
   if(style==='police'){cap(.212,'#1f2f55');mk(cyl(.23,.21,.09,18),M('#1f2f55'),0,.14,0,head);mk(new T.BoxGeometry(.24,.02,.13),M('#111'),0,.1,.19,head);mk(new T.BoxGeometry(.05,.05,.01),M('#f2b33d',{metalness:.6}),0,.16,.22,head)}
-  if(style==='grad'){const k=M('#1a1a1a');mk(cyl(.2,.21,.1,20),k,0,.15,0,head);const bd=new T.Group();bd.position.set(0,.21,0);bd.rotation.x=.42;bd.rotation.y=.25;head.add(bd);mk(new T.BoxGeometry(.46,.03,.46),k,0,0,0,bd);mk(new T.CylinderGeometry(.025,.025,.02,10),M('#f2b33d'),0,.025,0,bd);const ts=mk(new T.BoxGeometry(.014,.16,.014),M('#f2b33d'),.2,-.08,.2,bd);ts.rotation.x=-.42}
+  if(style==='grad'){mk(new T.BoxGeometry(.44,.025,.44),M('#1a1a1a'),0,.2,0,head).rotation.y=.4;mk(new T.BoxGeometry(.012,.12,.012),M('#f2b33d'),.18,.14,.1,head)}
   if(style==='bun')mk(new T.SphereGeometry(.09,12,10),hm,0,.17,-.14,head);
   if(style==='long')mk(new T.BoxGeometry(.38,.3,.12),hm,0,-.12,-.13,head);
   if(Math.random()<.25){const gm=M('#222');for(const s of[-1,1])mk(new T.TorusGeometry(.042,.007,6,16),gm,s*.07,.03,.19,head);mk(new T.BoxGeometry(.04,.008,.008),gm,0,.04,.19,head)}
   root.traverse(o=>{if(o.isMesh)o.castShadow=true});
-  {const w=.88+Math.random()*.32,h=.94+Math.random()*.1;b.scale.set(w,h,w);}
-  root.userData={b,legs,arms,elbows,head,mouth,brows,skinM,skin:new T.Color(skin),t:Math.random()*9,walk:0,state:'idle',tx:0,ry:0,anger:0,shake:0,jump:0};
+  root.userData={b,legs,arms,head,mouth,brows,skinM,skin:new T.Color(skin),t:Math.random()*9,walk:0,state:'idle',tx:0,ry:0,anger:0,shake:0,jump:0};
   root.position.set(-4.2,0,-1.45);S.add(root);return root}
 function mood(c,m){const u=c.userData;u.mouth.rotation.z=m==='angry'?0:Math.PI;u.mouth.scale.set(m==='meh'?.7:1,m==='meh'?.3:1,1);u.mouth.position.y=m==='angry'?-.09:-.07;u.brows[0].rotation.z=m==='angry'?-.45:0;u.brows[1].rotation.z=m==='angry'?.45:0}
 function walkTo(c,x,done){const u=c.userData;u.tx=x;u.state='walk';u.onArrive=done}
@@ -325,7 +319,7 @@ function updCust(c,dt){
   c.rotation.y+=(u.ry-c.rotation.y)*Math.min(1,dt*10);
   const w=u.state==='walk'?Math.sin(u.walk):0,idle=u.state!=='walk';
   u.legs[0].rotation.x=w*.6;u.legs[1].rotation.x=-w*.6;
-  u.arms[0].rotation.x=idle?-.3+Math.sin(u.t*2)*.03:-w*.5;u.arms[1].rotation.x=idle?-.3-Math.sin(u.t*2)*.03:w*.5;u.elbows[0].rotation.x=u.elbows[1].rotation.x=idle?-1.3:-.35;
+  u.arms[0].rotation.x=idle?-.35+Math.sin(u.t*2)*.03:-w*.5;u.arms[1].rotation.x=idle?-.35-Math.sin(u.t*2)*.03:w*.5;
   u.b.position.y=(idle?Math.sin(u.t*2.2)*.008:Math.abs(w)*.05)+u.jump;
   u.head.rotation.y=(idle?Math.sin(u.t*.7)*.14:0)+u.shake;u.head.rotation.z=u.anger*.12*Math.sin(u.t*1.6);
   u.skinM.color.copy(u.skin).lerp(RED,u.anger*.35)}
@@ -337,6 +331,7 @@ function tween(dur,fn,done){tweens.push({t:0,dur,fn,done})}
 const ease=k=>1-Math.pow(1-k,3);
 function fly(o,to,dur,arc,done,rotY){const f=o.position.clone(),r0=o.rotation.y;tween(dur,k=>{const e=ease(k);o.position.lerpVectors(f,to,e);o.position.y+=Math.sin(k*Math.PI)*arc;if(rotY!=null)o.rotation.y=r0+(rotY-r0)*e},done)}
 const V=(x,y,z)=>new T.Vector3(x,y,z);
+function stash(o,x){const s0=o.scale.x;fly(o,V(x,.82,-1.22),.5,.28,()=>disposeObj(o));tween(.5,k=>o.scale.setScalar(s0*(1-.6*k)))}
 const CAM_SPOT=()=>V(.1+(Math.random()-.5)*.3,1.2,.6);
 
 function resize(){const w=stage.clientWidth,h=stage.clientHeight;if(!w||!h)return;R.setSize(w,h,false);const bar=$('#bar'),top=Math.min(h*.4,bar.offsetTop+bar.offsetHeight+6),mh=h-top,a=w/mh;
@@ -386,8 +381,9 @@ function start(){
   ['#menu','#over','#pause'].forEach(s=>$(s).hidden=true);ac();
   G.sid++;G.rules=rules(modeIdx);Object.assign(G,{on:true,paused:false,active:false,score:0,streak:0,bestStreak:0,lives:3,served:0,mistakes:0,times:[],helps:0});
   renderDrawer();hud();ui.bar.style.transform='scaleX(1)';
-  if(G.cust){const c=G.cust;G.cust=null;mood(c,'happy');walkTo(c,4.3,()=>disposeObj(c))}
-  clearTable();later(next,500)}
+  G.reuse=G.cust&&G.cust.userData.tx===0?G.cust:null;
+  if(G.cust&&!G.reuse){const c=G.cust;mood(c,'happy');walkTo(c,4.3,()=>disposeObj(c))}G.cust=null;
+  clearTable();later(next,G.reuse?150:500)}
 function clearTable(){G.givenMesh.forEach(disposeObj);G.others.forEach(disposeObj);G.given=[];G.givenMesh=[];G.others=[];slipIdle()}
 function next(){
   if(!G.on)return;const m=MODES[modeIdx],r=G.rules,n=rnd(m.items[0],m.items[1]);let items,total,pay;
@@ -395,14 +391,16 @@ function next(){
     while(items.length<n){const p=pick(PRODUCTS);if(used.has(p[2]))continue;used.add(p[2]);items.push({name:p[0],art:p[1],kind:p[2],price:rnd(r.lo/r.u,r.hi/r.u)*r.u})}
     total=sumOf(items.map(i=>i.price));pay=payFor(total,r.pay);if(canMake(sumOf(pay)-total,r.d,r.u))break}
   G.cur={items,total,pay,paid:sumOf(pay),helped:false,T:Math.max(m.Tmin,m.T0-Math.floor(G.served/5)*2)};G.cur.tLeft=G.cur.T;
-  const c=customer();G.cust=c;mood(c,'happy');ui.bubble.classList.remove('on');drawScreen('Total','· · ·');
+  const c=G.reuse||customer();G.reuse=null;G.cust=c;mood(c,'happy');ui.bubble.classList.remove('on');drawScreen('Total','· · ·');
   walkTo(c,0,()=>{
     if(G.cust!==c)return;
     items.forEach((it,i)=>{const o=product(it.kind);o.position.set(.25,1.25,-1.2);o.rotation.y=Math.random()*6;it.mesh=o;G.others.push(o);fly(o,V(.36+i*.17,1.0,-.74+(i%2)*.08),.45+i*.08,.18)});
-    pay.forEach((v,i)=>{const o=billMesh(v);o.scale.setScalar(1.45);o.position.set(-.1,1.2,-1.2);G.others.push(o);fly(o,V(-.08+i*.06,1.015+i*.009,-.76+i*.03),.45+i*.06,.15,null,(i-(pay.length-1)/2)*.18)});
+    pay.forEach((v,i)=>{const o=billMesh(v);o.position.set(-.25,1.2,-1.2);G.others.push(o);fly(o,V(-.3+i*.035,1.015+i*.007,-.78),.45+i*.06,.15,null,.35+i*.12)});
     say(n>1?pick(['¡Hola! Me llevo todo esto.','Cobrame esto, porfa.','Buenas, ¿cuánto es todo?']):`¡Hola! Me das ${items[0].art}.`);
     drawScreen('Total',n>1?'¿?':fmt(total));ticket();G.active=true;G.t0=performance.now();ui.app.classList.remove('locked')})}
-function addBill(v){if(!G.active||G.paused)return;G.given.push(v);const o=billMesh(v),i=G.givenMesh.length;o.position.copy(CAM_SPOT());o.rotation.y=Math.random()*2;G.givenMesh.push(o);
+const ray=new T.Raycaster(),counterPlane=new T.Plane(new T.Vector3(0,1,0),-1.15);
+function dropPoint(x,y){const r=stage.getBoundingClientRect();ray.setFromCamera({x:(x-r.left)/r.width*2-1,y:-(y-r.top)/r.height*2+1},cam);const p=new T.Vector3();if(!ray.ray.intersectPlane(counterPlane,p))return null;p.x=Math.max(-1.2,Math.min(1.2,p.x));p.z=Math.max(-1.3,Math.min(.5,p.z));return p}
+function addBill(v,at){if(!G.active||G.paused)return;G.given.push(v);const o=billMesh(v),i=G.givenMesh.length;o.position.copy(at||CAM_SPOT());o.rotation.y=Math.random()*2;G.givenMesh.push(o);
   fly(o,V(.05+(Math.random()-.5)*.12,1.04+i*.007,-.32+(Math.random()-.5)*.06),.32,.22,null,(Math.random()-.5)*.6);SFX.bill();updSum()}
 function takeBack(all){if(!G.active||!G.given.length)return;do{G.given.pop();const o=G.givenMesh.pop();fly(o,CAM_SPOT(),.25,.1,()=>disposeObj(o))}while(all&&G.given.length);SFX.bill();updSum()}
 function give(){
@@ -412,7 +410,7 @@ function give(){
   const R=G.rules.R,extra=R-need%R,hand=need%R?split(extra,G.rules.d):null;
   if(hand&&!c.helped&&Math.random()<.4&&extra!==c.total){
     c.helped=true;G.active=false;SFX.help();say(`¡Pará! Tomá ${fmt(extra)} así me das más redondo.`);
-    takeBackSilent();later(()=>{hand.forEach((v,i)=>{const o=billMesh(v);o.scale.setScalar(1.45);o.position.set(-.1,1.2,-1.2);G.others.push(o);fly(o,V(.12+i*.05,1.04+i*.009,-.62),.4,.12,null,.3+i*.2)});
+    takeBackSilent();later(()=>{hand.forEach((v,i)=>{const o=billMesh(v);o.position.set(-.2,1.2,-1.2);G.others.push(o);fly(o,V(-.2+i*.04,1.02+i*.007,-.62),.4,.12,null,i*.3)});
       c.paid+=extra;c.tLeft=Math.min(c.T,c.tLeft+4);const pl=$('#payLine');if(pl){pl.querySelector('b').textContent=fmt(c.paid);pl.classList.remove('bump');void pl.offsetWidth;pl.classList.add('bump')}G.active=true},700);return}
   win()}
 function takeBackSilent(){while(G.givenMesh.length){const o=G.givenMesh.pop();fly(o,CAM_SPOT(),.3,.1,()=>disposeObj(o))}G.given=[];updSum()}
@@ -427,14 +425,14 @@ function win(){
   G.score+=pts;hud();SFX.ok();buzz(30);floatTxt('+'+pts.toLocaleString('es-AR'));
   say(ratio>.7?pick(['¡Qué rápido! Gracias.','¡Volando! Gracias.']):pick(['¡Gracias!','¡Genial, gracias!','¡Buen día!']),1200);
   mood(cust,'happy');tween(.5,k=>u.jump=Math.sin(k*Math.PI)*.18,()=>u.jump=0);
-  const handoff=()=>{G.givenMesh.forEach(o=>fly(o,V(0,1.3,-1.4),.35,.1,()=>disposeObj(o)));c.items.forEach(it=>fly(it.mesh,V(0,1.3,-1.4),.4,.1,()=>disposeObj(it.mesh)));
+  const handoff=()=>{G.givenMesh.forEach(o=>stash(o,-.28));c.items.forEach(it=>stash(it.mesh,.3));
 G.others.filter(o=>!c.items.some(it=>it.mesh===o)).forEach(o=>fly(o,CAM_SPOT(),.35,.1,()=>disposeObj(o)));G.givenMesh=[];G.given=[];G.others=[];updSum()};
   later(handoff,250);
   later(()=>{slipIdle();if(G.served%5===0)floatTxt('¡Más rápido!');walkTo(cust,4.3,()=>disposeObj(cust));later(next,450)},800)}
 function timeout(){
   const cust=G.cust,u=cust.userData;G.active=false;ui.app.classList.add('locked');G.lives--;G.streak=0;hud();SFX.lose();buzz(200);
   say('Ya fue, compro en otro lado.',1600);mood(cust,'angry');u.anger=1;
-  later(()=>{G.givenMesh.forEach(o=>fly(o,CAM_SPOT(),.3,.1,()=>disposeObj(o)));G.others.forEach(o=>fly(o,V(0,1.3,-1.4),.4,.1,()=>disposeObj(o)));G.givenMesh=[];G.others=[];G.given=[];updSum();slipIdle()},500);
+  later(()=>{G.givenMesh.forEach(o=>fly(o,CAM_SPOT(),.3,.1,()=>disposeObj(o)));G.others.forEach(o=>stash(o,o.geometry===billGeo?-.28:.3));G.givenMesh=[];G.others=[];G.given=[];updSum();slipIdle()},500);
   later(()=>{walkTo(cust,-4.3,()=>disposeObj(cust));if(G.lives<=0)later(gameOver,400);else later(next,500)},1300)}
 function gameOver(){
   G.on=false;G.cust=null;const rec=G.score>(best[modeIdx]||0);if(rec){best[modeIdx]=G.score;store.set('best',best)}
@@ -448,7 +446,16 @@ function quit(){G.sid++;G.on=false;G.active=false;G.paused=false;$('#pause').hid
   if(G.cust){const c=G.cust;G.cust=null;walkTo(c,4.3,()=>disposeObj(c))}renderModes();$('#menu').hidden=false;setTimeout(idleCustomer,600)}
 function idleCustomer(){if(G.on||G.cust)return;const c=customer();G.cust=c;mood(c,'happy');walkTo(c,0,()=>drawScreen('Hola','$0'))}
 
-ui.bills.addEventListener('click',e=>{const b=e.target.closest('.bill');if(b)addBill(+b.dataset.v)});
+let drag=null,noClick=false;
+ui.bills.addEventListener('click',e=>{if(noClick){noClick=false;return}const b=e.target.closest('.bill');if(b)addBill(+b.dataset.v)});
+ui.bills.addEventListener('pointerdown',e=>{const b=e.target.closest('.bill');if(!b||!G.active)return;drag={b,v:+b.dataset.v,x:e.clientX,y:e.clientY,id:e.pointerId,g:null}});
+const overStage=(x,y)=>{const r=stage.getBoundingClientRect();return x>=r.left&&x<=r.right&&y>=r.top&&y<=r.bottom};
+window.addEventListener('pointermove',e=>{if(!drag||e.pointerId!==drag.id)return;
+  if(!drag.g&&Math.hypot(e.clientX-drag.x,e.clientY-drag.y)>10){const r=drag.b.getBoundingClientRect(),g=drag.b.cloneNode(true);const em=g.querySelector('em');if(em)em.remove();g.classList.add('ghost');g.style.width=r.width+'px';g.style.height=r.height+'px';document.body.appendChild(g);Object.assign(drag,{g,w:r.width,h:r.height})}
+  if(drag.g){e.preventDefault();drag.g.style.transform=`translate(${e.clientX-drag.w/2}px,${e.clientY-drag.h/2}px) rotate(-6deg) scale(1.06)`;drag.g.classList.toggle('drop',overStage(e.clientX,e.clientY))}},{passive:false});
+function endDrag(e,cancel){if(!drag||e.pointerId!==drag.id)return;const d=drag;drag=null;if(!d.g)return;d.g.remove();noClick=true;setTimeout(()=>noClick=false,80);
+  if(!cancel&&overStage(e.clientX,e.clientY))addBill(d.v,dropPoint(e.clientX,e.clientY))}
+window.addEventListener('pointerup',e=>endDrag(e,false));window.addEventListener('pointercancel',e=>endDrag(e,true));
 $('#undo').addEventListener('click',()=>takeBack(false));$('#clear').addEventListener('click',()=>takeBack(true));$('#give').addEventListener('click',give);
 $('#play').addEventListener('click',start);$('#again').addEventListener('click',start);
 $('#toMenu').addEventListener('click',()=>{$('#over').hidden=true;$('#menu').hidden=false});
