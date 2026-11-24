@@ -49,6 +49,22 @@ button:focus-visible,input:focus-visible+span{outline:3px solid var(--gold);outl
 #bubble.on{opacity:1;animation:pop .28s cubic-bezier(.3,1.6,.6,1)}
 #bubble::before{content:"";position:absolute;left:-9px;top:50%;margin-top:-8px;border:8px solid transparent;border-right:10px solid #fff;border-left:0}
 @keyframes pop{from{transform:translateY(-50%) scale(.6)}}
+#info{position:absolute;left:10px;right:10px;top:calc(70px + env(safe-area-inset-top));z-index:3;display:flex;justify-content:space-between;align-items:center;gap:6px;font-size:14px;font-weight:600;text-shadow:0 1px 3px #0009;white-space:nowrap}
+#info:empty{display:none}.tags{display:flex;gap:4px;overflow:hidden}
+.tag{background:#0f2e2bd9;border-radius:99px;padding:2px 9px;font-size:13px;text-shadow:none}.tag.ev{color:var(--gold)}.tag.sp{background:var(--red)}
+#banner{position:absolute;left:50%;top:38%;z-index:5;transform:translate(-50%,-50%) scale(.8);opacity:0;pointer-events:none;background:var(--paper);color:var(--dark);border-radius:20px;padding:14px 22px;text-align:center;box-shadow:0 12px 30px #0007;width:max-content;max-width:min(320px,86%);transition:opacity .25s,transform .35s cubic-bezier(.3,1.5,.6,1)}
+#banner.on{opacity:1;transform:translate(-50%,-50%) scale(1)}
+#banner b{display:block;font-size:34px;line-height:1.1}#banner span{display:block;font-size:15px;color:#4a524f;margin-top:4px;white-space:normal}
+#lcd.off{background:#0b1611;color:#2c5a3d}
+#calcBtn{position:relative}#calcBtn i{position:absolute;right:-4px;top:-4px;font-style:normal;font-size:12px;font-weight:700;background:var(--gold);color:var(--dark);border-radius:9px;min-width:18px;line-height:18px;text-align:center}
+#calcBtn[hidden]{display:none}
+.perks{display:grid;gap:8px}
+.perk{display:block;text-align:left;background:#efe6d3;color:var(--dark);border-radius:14px;padding:12px 14px;border:3px solid transparent;min-height:44px}
+.perk:hover,.perk:focus-visible{border-color:var(--red)}.perk b{display:block;font-size:18px}.perk span{font-size:14px;color:#4a524f}
+.shopItem{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #e3d9c4}
+.shopItem>div{flex:1}.shopItem b{display:block}.shopItem span{font-size:14px;color:#5b625f}
+.buy{flex:none;min-height:44px;padding:0 12px;border-radius:12px;background:var(--red);color:#fff;font-weight:700;white-space:nowrap}
+.buy:disabled{background:#d6ccb7;color:#7b807d;cursor:default}
 .float{position:absolute;z-index:5;font-weight:700;font-size:30px;color:var(--gold);text-shadow:0 3px 0 #0007;pointer-events:none;animation:up 1.1s ease-out forwards;white-space:nowrap}
 .float.bad{color:#ff8b7f}
 @keyframes up{to{transform:translateY(-70px);opacity:0}}
@@ -125,12 +141,15 @@ button:focus-visible,input:focus-visible+span{outline:3px solid var(--gold);outl
       <button id="pauseBtn" aria-label="Pausa"><svg width="18" height="18" viewBox="0 0 18 18" fill="#fff8ec"><rect x="3" y="2" width="4" height="14" rx="1.5"/><rect x="11" y="2" width="4" height="14" rx="1.5"/></svg></button>
     </div>
     <div id="bar"><i></i></div>
+    <div id="info"></div>
+    <div id="banner"></div>
     <div id="bubble"></div>
   </div>
   <div id="drawer">
     <div id="slip"><span class="idle">Esperando cliente…</span></div>
     <div id="readout">
-      <div id="lcd"><span>Vuelto</span><b id="sum">$0</b></div>
+      <div id="lcd"><span id="lcdLabel">Vuelto</span><b id="sum">$0</b></div>
+      <button class="tool" id="calcBtn" hidden aria-label="Calculadora: mostrar el vuelto"><svg viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M8 7h8M8 12h.01M12 12h.01M16 12h.01M8 16h.01M12 16h.01M16 16h.01"/></svg><i></i></button>
       <button class="tool" id="undo" aria-label="Sacar el último billete"><svg viewBox="0 0 24 24"><path d="M9 14 4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/></svg></button>
       <button class="tool" id="clear" aria-label="Sacar todos los billetes"><svg viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg></button>
     </div>
@@ -153,8 +172,9 @@ button:focus-visible,input:focus-visible+span{outline:3px solid var(--gold);outl
     <label class="tog"><input type="checkbox" id="expert"><span></span><div>Ocultar la suma del vuelto <small>(puntos ×1,5)</small></div></label>
     <label class="tog"><input type="checkbox" id="snd" checked><span></span><div>Sonido</div></label>
     <button class="big" id="play">Abrir la caja</button>
+    <button class="big alt" id="shopBtn">Tienda · <span id="coinsMenu">0</span> ahorros</button>
     <button class="big alt" id="install" hidden>Instalar en el celular</button>
-    <p class="how">Tocá o arrastrá billetes al mostrador para armar el vuelto y apretá «Dar vuelto». Si el cliente te ofrece plata para redondear, recalculá. Cada 5 clientes tenés menos tiempo; con 3 perdidos se termina el turno.</p>
+    <p class="how">Tocá o arrastrá billetes al mostrador y apretá «Dar vuelto». Cada día atendés 5 clientes y al terminarlo elegís una mejora; cada día es más difícil. Con 3 clientes perdidos se termina el turno y lo que juntaste va a tus ahorros para la tienda.</p>
   </div>
 </div>
 
@@ -162,8 +182,27 @@ button:focus-visible,input:focus-visible+span{outline:3px solid var(--gold);outl
   <div class="card">
     <h2>Pausa</h2>
     <p>El cliente te espera.</p>
+    <p id="perkList"></p>
     <button class="big" id="resume">Seguir</button>
     <button class="big alt" id="quit">Cerrar la caja</button>
+  </div>
+</div>
+
+<div class="ov" id="dayEnd" hidden>
+  <div class="card">
+    <h2 id="dayTitle">Día terminado</h2>
+    <p id="dayStats"></p>
+    <p><b>Elegí una mejora para mañana:</b></p>
+    <div class="perks" id="perkOpts"></div>
+  </div>
+</div>
+
+<div class="ov" id="shop" hidden>
+  <div class="card">
+    <h2>Tienda</h2>
+    <p>Tenés <b id="coinsShop">0</b> ahorros. Lo que comprás queda para todos los turnos.</p>
+    <div id="shopList"></div>
+    <button class="big alt" id="shopClose">Volver</button>
   </div>
 </div>
 
@@ -174,6 +213,7 @@ button:focus-visible,input:focus-visible+span{outline:3px solid var(--gold);outl
     <div id="recLine"></div>
     <div class="stats" id="stats"></div>
     <button class="big" id="again">Otro turno</button>
+    <button class="big alt" id="overShop">Tienda</button>
     <button class="big alt" id="toMenu">Menú</button>
   </div>
 </div>
@@ -236,7 +276,7 @@ const M=(c,o)=>new T.MeshStandardMaterial(Object.assign({color:c,roughness:.7},o
 function mk(geo,mat,x,y,z,parent,noShadow){const m=new T.Mesh(geo,mat);m.position.set(x||0,y||0,z||0);if(!noShadow){m.castShadow=true;m.receiveShadow=true}(parent||S).add(m);return m}
 function canvasTex(w,h,draw){const c=document.createElement('canvas');c.width=w;c.height=h;const t=new T.CanvasTexture(c);t.encoding=T.sRGBEncoding;t.anisotropy=4;t.userData={c,draw};draw(c.getContext('2d'),w,h);return t}
 
-S.add(new T.HemisphereLight('#fff1dc','#2b4a47',.8));
+const hemi=new T.HemisphereLight('#fff1dc','#2b4a47',.8);S.add(hemi);
 const sun=new T.DirectionalLight('#ffe7c2',.85);sun.position.set(2.2,5,2.8);sun.castShadow=true;sun.shadow.mapSize.set(1024,1024);Object.assign(sun.shadow.camera,{left:-3,right:3,top:3,bottom:-3,near:1,far:12});sun.shadow.bias=-.0006;S.add(sun);
 const warm=new T.PointLight('#ffb36b',.45,7);warm.position.set(-1.6,2.5,-.6);S.add(warm);
 
@@ -294,12 +334,12 @@ function product(kind){
 
 /* clientes */
 const SKINS=['#f1c9a5','#e0ac7e','#c68a5c','#9a6440','#6e4429'],SHIRTS=['#3d7fd1','#e8483b','#f2b33d','#7cc46b','#9a5cc4','#ff8a3d','#2bb0a6','#f6f1e3','#3a3f46'],PANTS=['#2c3e63','#3a3f46','#6b4b33','#24504d'],HAIRS=['#2a1d15','#5b3a22','#a8692e','#d9b36c','#8a8a8a','#1a1a1a'];
-function customer(){
+function customer(o){o=o||{};
   const root=new T.Group(),b=new T.Group();root.add(b);
-  const skin=pick(SKINS),skinM=M(skin),hairC=pick(HAIRS),cyl=(a,c,h,s)=>new T.CylinderGeometry(a,c,h,s||12);
+  const skin=pick(SKINS),skinM=M(skin),hairC=o.hair||pick(HAIRS),cyl=(a,c,h,s)=>new T.CylinderGeometry(a,c,h,s||12);
   const legs=[],arms=[];
   for(const s of[-1,1]){const l=new T.Group();l.position.set(s*.11,.84,0);b.add(l);mk(cyl(.075,.07,.78),M(pick(PANTS)),0,-.4,0,l);mk(new T.BoxGeometry(.13,.08,.22),M('#2a2a2a'),0,-.8,.04,l);legs.push(l)}
-  const shirt=M(pick(SHIRTS));mk(cyl(.21,.25,.62,16),shirt,0,1.12,0,b);const sh=mk(new T.SphereGeometry(.215,16,10),shirt,0,1.42,0,b);sh.scale.y=.45;
+  const shirt=M(o.shirt||pick(SHIRTS));mk(cyl(.21,.25,.62,16),shirt,0,1.12,0,b);const sh=mk(new T.SphereGeometry(.215,16,10),shirt,0,1.42,0,b);sh.scale.y=.45;
   for(const s of[-1,1]){const a=new T.Group();a.position.set(s*.27,1.4,0);a.rotation.z=s*.12;b.add(a);mk(cyl(.055,.05,.52),shirt,0,-.26,0,a);mk(new T.SphereGeometry(.055,10,8),skinM,0,-.55,0,a);arms.push(a)}
   mk(cyl(.07,.07,.12),skinM,0,1.52,0,b);
   const head=new T.Group();head.position.set(0,1.68,0);b.add(head);
@@ -308,16 +348,18 @@ function customer(){
   for(const s of[-1,1]){mk(new T.SphereGeometry(.026,10,8),dark,s*.07,.03,.178,head);const ck=mk(new T.SphereGeometry(.03,10,8),M('#f08f8a',{transparent:true,opacity:.55}),s*.12,-.04,.15,head);ck.scale.z=.3}
   const brows=[-1,1].map(s=>mk(new T.BoxGeometry(.065,.016,.012),M(hairC),s*.07,.095,.183,head));
   const mouth=mk(new T.TorusGeometry(.045,.011,6,14,Math.PI),dark,0,-.07,.182,head);mouth.rotation.z=Math.PI;
-  const hm=M(hairC),style=pick(['hair','hair','cap','chef','police','grad','bun','long']);
+  const hm=M(hairC),style=o.style||pick(['hair','hair','cap','chef','police','grad','bun','long']);
   const cap=(r,c)=>{const h=mk(new T.SphereGeometry(r,18,10,0,Math.PI*2,0,Math.PI/2),M(c),0,.01,-.01,head);h.rotation.x=-.18;return h};
   if(style!=='chef'&&style!=='police'&&style!=='cap')cap(.212,hairC);
   if(style==='cap'){cap(.214,pick(SHIRTS));mk(new T.BoxGeometry(.22,.02,.14),M('#2a2a2a'),0,.07,.2,head)}
   if(style==='chef'){cap(.212,hairC);mk(cyl(.15,.15,.16,16),M('#ffffff'),0,.22,-.01,head);const t=mk(new T.SphereGeometry(.17,14,10),M('#ffffff'),0,.33,-.01,head);t.scale.y=.65}
   if(style==='police'){cap(.212,'#1f2f55');mk(cyl(.23,.21,.09,18),M('#1f2f55'),0,.14,0,head);mk(new T.BoxGeometry(.24,.02,.13),M('#111'),0,.1,.19,head);mk(new T.BoxGeometry(.05,.05,.01),M('#f2b33d',{metalness:.6}),0,.16,.22,head)}
   if(style==='grad'){mk(new T.BoxGeometry(.44,.025,.44),M('#1a1a1a'),0,.2,0,head).rotation.y=.4;mk(new T.BoxGeometry(.012,.12,.012),M('#f2b33d'),.18,.14,.1,head)}
+  if(style==='top'){cap(.212,hairC);const hk=M('#1d1d1f');mk(cyl(.24,.24,.02,24),hk,0,.16,0,head);mk(cyl(.15,.16,.26,20),hk,0,.3,0,head);mk(cyl(.162,.162,.04,20),M('#b93226'),0,.21,0,head)}
+  if(o.mustache){const ms=mk(new T.BoxGeometry(.13,.035,.03),M(hairC==='#d9b36c'?'#8a5a2b':hairC),0,-.035,.19,head);ms.rotation.z=0}
   if(style==='bun')mk(new T.SphereGeometry(.09,12,10),hm,0,.17,-.14,head);
   if(style==='long')mk(new T.BoxGeometry(.38,.3,.12),hm,0,-.12,-.13,head);
-  if(Math.random()<.25){const gm=M('#222');for(const s of[-1,1])mk(new T.TorusGeometry(.042,.007,6,16),gm,s*.07,.03,.19,head);mk(new T.BoxGeometry(.04,.008,.008),gm,0,.04,.19,head)}
+  if(o.glasses||(o.glasses==null&&Math.random()<.25)){const gm=M('#222');for(const s of[-1,1])mk(new T.TorusGeometry(.042,.007,6,16),gm,s*.07,.03,.19,head);mk(new T.BoxGeometry(.04,.008,.008),gm,0,.04,.19,head)}
   root.traverse(o=>{if(o.isMesh)o.castShadow=true});
   root.userData={b,legs,arms,head,mouth,brows,skinM,skin:new T.Color(skin),t:Math.random()*9,walk:0,state:'idle',tx:0,ry:0,anger:0,shake:0,jump:0};
   root.position.set(-4.2,0,-1.45);S.add(root);return root}
@@ -350,12 +392,14 @@ function resize(){const w=stage.clientWidth,h=stage.clientHeight;if(!w||!h)retur
 new ResizeObserver(resize).observe(stage);resize();
 
 /* ---------- interfaz ---------- */
-const ui={score:$('#score'),streak:$('#streak'),hearts:$('#hearts'),bar:$('#bar i'),slip:$('#slip'),bubble:$('#bubble'),sum:$('#sum'),bills:$('#bills'),app:$('#app')};
+let meta=Object.assign({coins:0,shop:{},bestDay:[0,0,0]},store.get('meta',{}));
+const ui={info:$('#info'),banner:$('#banner'),score:$('#score'),streak:$('#streak'),hearts:$('#hearts'),bar:$('#bar i'),slip:$('#slip'),bubble:$('#bubble'),sum:$('#sum'),bills:$('#bills'),app:$('#app')};
 const HEART='<svg viewBox="0 0 24 24"><path d="M12 21s-7.5-4.6-9.6-9.2C.9 8.4 3 4.5 6.7 4.5c2.2 0 3.6 1.2 4.3 2.4.7-1.2 2.1-2.4 4.3-2.4 3.7 0 5.8 3.9 4.3 7.3C19.5 16.4 12 21 12 21z"/></svg>';
 let modeIdx=store.get('mode',0),best=store.get('best',[0,0,0]),expert=store.get('expert',false);
 $('#expert').checked=expert;$('#snd').checked=sound;
 function renderModes(){
-  $('#modes').innerHTML=MODES.map((m,i)=>{const r=rules(i);return`<button class="mode" data-i="${i}" aria-pressed="${i===modeIdx}"><b>${m.name}</b><small>${m.items[1]>1?'2 o 3 productos, sumás vos':'Precios hasta '+fmt(r.hi)}</small><i>Récord ${best[i]||0}</i></button>`}).join('');
+  $('#modes').innerHTML=MODES.map((m,i)=>{const r=rules(i);return`<button class="mode" data-i="${i}" aria-pressed="${i===modeIdx}"><b>${m.name}</b><small>${m.items[1]>1?'2 o 3 productos, sumás vos':'Precios hasta '+fmt(r.hi)}</small><i>Récord ${(best[i]||0).toLocaleString('es-AR')}${meta.bestDay[i]?' · día '+meta.bestDay[i]:''}</i></button>`}).join('');
+  $('#coinsMenu').textContent=meta.coins;
   const r=rules(modeIdx);$('#bmode').textContent=MODES[modeIdx].name;
   $('#chips').innerHTML=ALL.map(v=>`<button class="chip" data-v="${v}" aria-pressed="${r.d.includes(v)}" style="--b:${BILL[v][0]};--i:${BILL[v][1]}">${v.toLocaleString('es-AR')}</button>`).join('');
   $('#bnote').textContent=`Precios de ${fmt(r.lo)} a ${fmt(r.hi)}${MODES[modeIdx].items[1]>1?' por producto':''}, de a ${fmt(r.u)}. El cliente paga con billetes de hasta ${fmt(r.pay[r.pay.length-1])}.`}
@@ -375,45 +419,116 @@ function floatTxt(txt,bad){const d=document.createElement('div');d.className='fl
 /* ---------- juego ---------- */
 function later(fn,ms){const id=G.sid;setTimeout(()=>{if(G.sid===id)fn()},ms)}
 const G={sid:0,on:false,paused:false,active:false,cust:null,cur:null,given:[],givenMesh:[],others:[]};
-function hud(){ui.score.textContent=G.score.toLocaleString('es-AR');ui.streak.textContent='racha '+G.streak;ui.hearts.innerHTML=[0,1,2].map(i=>HEART.replace('<svg','<svg class="'+(i<G.lives?'':'off')+'"')).join('')}
+const PER_DAY=5;
+/* mejoras que se eligen al terminar cada día */
+const PERKS=[
+  {id:'pac',name:'Más paciencia',desc:'Cada cliente te espera 3 s más.',max:3},
+  {id:'seguro',name:'Seguro de error',desc:'Tu primer error de cada día no resta tiempo ni corta la racha.',max:2},
+  {id:'redondo',name:'Vuelto redondo',desc:'Los vueltos redondos dan 50% más puntos.',max:2},
+  {id:'calc',name:'Calculadora',desc:'Una vez por día te muestra el vuelto. Ese cliente da la mitad de puntos.',max:2},
+  {id:'vida',name:'Curita',desc:'Recuperás una vida (hasta 5).',max:99},
+  {id:'racha',name:'Racha caliente',desc:'La racha puede multiplicar los puntos hasta ×2,5.',max:1},
+  {id:'propina',name:'Propinas',desc:'Ganás 20% más puntos por cliente.',max:3},
+  {id:'espera',name:'Cliente paciente',desc:'Una vez por día, un cliente que se iba te espera 6 s más.',max:2},
+  {id:'ojo',name:'Ojo de cajero',desc:'Cuando llevan varios productos, ves el total sumado.',max:1}
+];
+/* eventos que pueden tocar al empezar un día */
+const EVENTS=[
+  {id:'luz',name:'Corte de luz',desc:'No ves la suma del vuelto. Puntos ×1,5.',pts:1.5},
+  {id:'pico',name:'Hora pico',desc:'Los clientes tienen 25% menos paciencia. Puntos ×1,3.',pat:.75,pts:1.3},
+  {id:'infla',name:'Inflación',desc:'Los precios subieron 50%. Puntos ×1,3.',price:1.5,pts:1.3},
+  {id:'tranqui',name:'Día tranquilo',desc:'Los clientes tienen 30% más paciencia.',pat:1.3}
+];
+/* clientes especiales */
+const SPECIALS=[
+  {id:'apurado',name:'Apurado',pat:.55,pts:2,look:{style:'cap',shirt:'#e8483b'},hi:'¡Rápido que estoy apurado!'},
+  {id:'abuela',name:'Abuela',pat:1.5,pts:1.3,look:{hair:'#d9d9d9',style:'bun',glasses:true},hi:'Hola, querido. Te pago con lo que tengo.'},
+  {id:'regatea',name:'Regateador',pat:1,pts:1.5,look:{mustache:true,style:'hair'},hi:'Buenas… ¿no tenés un precio mejor?'},
+  {id:'millo',name:'Billetera grande',pat:1.1,pts:1.5,look:{style:'top',shirt:'#2b2f35'},hi:'Perdón, solo tengo billetes grandes.'}
+];
+/* tienda: mejoras que se compran con ahorros y quedan para siempre */
+const SHOP=[
+  {id:'vida',name:'Corazón extra',desc:'Empezás cada turno con 4 vidas.',cost:[60]},
+  {id:'pac',name:'Mate al lado de la caja',desc:'Cada cliente te espera 2 s más por nivel.',cost:[30,60,100]},
+  {id:'start',name:'Buen arranque',desc:'Empezás cada turno con una mejora al azar.',cost:[80]},
+  {id:'calc',name:'Calculadora vieja',desc:'Un uso de calculadora por día desde el día 1.',cost:[120]}
+];
+const saveMeta=()=>store.set('meta',meta),lvl=id=>meta.shop[id]||0,has=id=>G.perks[id]||0;
+
+function hud(){ui.score.textContent=G.score.toLocaleString('es-AR');ui.streak.textContent='racha '+G.streak;G.slots=Math.max(G.slots,G.lives);
+  ui.hearts.innerHTML=Array.from({length:G.slots},(_,i)=>HEART.replace('<svg','<svg class="'+(i<G.lives?'':'off')+'"')).join('')}
+function info(){const c=G.cur,tags=[];if(G.event)tags.push(`<span class="tag ev">${G.event.name}</span>`);if(c&&c.sp&&G.active)tags.push(`<span class="tag sp">${c.sp.name} ×${String(c.sp.pts).replace('.',',')}</span>`);
+  ui.info.innerHTML=`<span>Día ${G.day} · cliente ${Math.min(PER_DAY,G.dayDone+1)} de ${PER_DAY}</span><span class="tags">${tags.join('')}</span>`}
+const blind=()=>expert||(G.event&&G.event.id==='luz');
 function renderDrawer(){const d=G.rules.d,n=d.length,cols=n<=4?2:n<=9?3:4;ui.bills.style.gridTemplateColumns=`repeat(${cols},minmax(0,1fr))`;ui.bills.classList.toggle('tight',cols>3);ui.bills.innerHTML=d.map(v=>`<button class="bill" data-v="${v}" style="--b:${BILL[v][0]};--i:${BILL[v][1]}"><b>${fmt(v)}</b></button>`).join('');updSum()}
-function updSum(){const s=sumOf(G.given);ui.sum.textContent=expert?(G.given.length?'$ · · ·':'$0'):fmt(s);
+function updSum(){const s=sumOf(G.given);ui.sum.textContent=blind()?(G.given.length?'$ · · ·':'$0'):fmt(s);$('#lcd').classList.toggle('off',!!(G.event&&G.event.id==='luz'));
   const cnt={};G.given.forEach(v=>cnt[v]=(cnt[v]||0)+1);ui.bills.querySelectorAll('.bill').forEach(b=>{const n=cnt[b.dataset.v];let e=b.querySelector('em');if(n){if(!e){e=document.createElement('em');b.appendChild(e)}e.textContent='×'+n}else if(e)e.remove()})}
-function ticket(){const c=G.cur,pro=c.items.length>1;
-  ui.slip.innerHTML=`<span class="it">${pro?c.items.map(it=>fmt(it.price)).join(' + '):'Total <b>'+fmt(c.total)+'</b>'}</span><span class="pay" id="payLine">Paga <b>${fmt(c.paid)}</b></span>`}
+function calcUi(){const b=$('#calcBtn');b.hidden=!(G.on&&G.calcLeft>0);b.querySelector('i').textContent=G.calcLeft;
+  $('#lcdLabel').textContent=G.cur&&G.cur.calc?'Vuelto · '+fmt(G.cur.paid-G.cur.total):'Vuelto'}
+function ticket(){const c=G.cur,multi=c.items.length>1,old=c.haggled?`<s>${fmt(c.orig)}</s> `:'';
+  const it=multi?c.items.map(i=>fmt(i.price)).join(' + ')+(c.haggled?` → <b>${fmt(c.total)}</b>`:has('ojo')?` = <b>${fmt(c.total)}</b>`:''):`Total ${old}<b>${fmt(c.total)}</b>`;
+  ui.slip.innerHTML=`<span class="it">${it}</span><span class="pay" id="payLine">Paga <b>${fmt(c.paid)}</b></span>`}
 function slipIdle(){ui.slip.innerHTML='<span class="idle">Esperando cliente…</span>'}
 function payFor(p,P){const c=[];
   for(const b of P){const n=Math.ceil((p+1)/b);if(n<=3)c.push(Array(n).fill(b))}
   for(const b of P)for(const s of P)if(s<b){const nb=Math.floor(p/b);if(!nb)continue;const ns=Math.ceil((p-nb*b+1)/s);if(nb+ns<=4&&ns*s<b)c.push([...Array(nb).fill(b),...Array(ns).fill(s)])}
   if(!c.length){const m=P[P.length-1];c.push(Array(Math.ceil((p+1)/m)).fill(m))}
   return pick(c)}
+/* la abuela junta billetes chicos; el de billetera grande paga con el más grande */
+function payMany(p,r){const S=r.d.filter(v=>v<=r.M/2);if(S.length<2)return null;const top=S[S.length-1],target=Math.ceil((p+1)/top)*top;
+  for(let t=0;t<30;t++){let rem=target;const out=[];while(rem>0&&out.length<9){const ok=S.filter(v=>v<=rem);if(!ok.length)break;const v=pick(ok);out.push(v);rem-=v}if(!rem&&out.length>=3)return out.sort((a,b)=>b-a)}return null}
+function payBig(p,r){const B=r.pay[r.pay.length-1],n=Math.ceil((p+1)/B);return n<=3?Array(n).fill(B):null}
 
 function start(){
-  ['#menu','#over','#pause'].forEach(s=>$(s).hidden=true);ac();
-  G.sid++;G.rules=rules(modeIdx);Object.assign(G,{on:true,paused:false,active:false,score:0,streak:0,bestStreak:0,lives:3,served:0,mistakes:0,times:[],helps:0});
+  ['#menu','#over','#pause','#dayEnd','#shop'].forEach(s=>$(s).hidden=true);ac();
+  G.sid++;G.rules=rules(modeIdx);
+  Object.assign(G,{on:true,paused:false,active:false,score:0,streak:0,bestStreak:0,lives:lvl('vida')?4:3,slots:3,served:0,mistakes:0,times:[],helps:0,day:0,perks:{},event:null,runCoins:0});
+  if(lvl('start')){const p=pick(PERKS.filter(p=>p.id!=='vida'));G.perks[p.id]=1;G.startPerk=p.name}else G.startPerk=null;
   renderDrawer();hud();ui.bar.style.transform='scaleX(1)';
   G.reuse=G.cust&&G.cust.userData.tx===0?G.cust:null;
   if(G.cust&&!G.reuse){const c=G.cust;mood(c,'happy');walkTo(c,4.3,()=>disposeObj(c))}G.cust=null;
-  clearTable();later(next,G.reuse?150:500)}
+  clearTable();startDay()}
+function startDay(){
+  G.day++;G.dayDone=0;G.dayPts=0;G.dayServed=0;
+  G.seguroLeft=has('seguro');G.esperaLeft=has('espera');G.calcLeft=has('calc')+lvl('calc');
+  G.event=G.day>=2&&Math.random()<.45?pick(EVENTS):null;
+  const dim=G.event&&G.event.id==='luz';hemi.intensity=dim?.3:.8;sun.intensity=dim?.25:.85;warm.intensity=dim?.9:.45;
+  updSum();calcUi();info();hud();
+  const sub=G.event?`<span>${G.event.name}: ${G.event.desc}</span>`:G.day===1&&G.startPerk?`<span>Arrancás con ${G.startPerk}</span>`:`<span>${PER_DAY} clientes. ¡A cobrar!</span>`;
+  ui.banner.innerHTML=`<b>Día ${G.day}</b>${sub}`;ui.banner.classList.remove('on');void ui.banner.offsetWidth;ui.banner.classList.add('on');
+  later(()=>ui.banner.classList.remove('on'),2300);later(next,G.reuse?900:1400)}
 function clearTable(){G.givenMesh.forEach(disposeObj);G.others.forEach(disposeObj);G.given=[];G.givenMesh=[];G.others=[];slipIdle()}
 function next(){
-  if(!G.on)return;const m=MODES[modeIdx],r=G.rules,n=rnd(m.items[0],m.items[1]);let items,total,pay;
+  if(!G.on)return;const m=MODES[modeIdx],r=G.rules,d=G.day,ev=G.event||{};
+  let n=rnd(m.items[0],m.items[1]);if(d>=4&&Math.random()<Math.min(.5,(d-3)*.15))n=Math.min(n+1,m.items[1]>1?3:2);
+  const sp=d>=2&&Math.random()<Math.min(.5,.2+.06*d)?pick(SPECIALS):null;
+  const span=Math.min(1,.4+.15*(d-1)),hi=Math.max(r.lo,Math.round((r.lo+(r.hi-r.lo)*span)*(ev.price||1)/r.u)*r.u);
+  let items,total,pay;
   for(let tries=0;tries<80;tries++){const used=new Set();items=[];
-    while(items.length<n){const p=pick(PRODUCTS);if(used.has(p[2]))continue;used.add(p[2]);items.push({name:p[0],art:p[1],kind:p[2],price:rnd(r.lo/r.u,r.hi/r.u)*r.u})}
-    total=sumOf(items.map(i=>i.price));pay=payFor(total,r.pay);if(canMake(sumOf(pay)-total,r.d,r.u))break}
-  G.cur={items,total,pay,paid:sumOf(pay),helped:false,T:Math.max(m.Tmin,m.T0-Math.floor(G.served/5)*2)};G.cur.tLeft=G.cur.T;
-  const c=G.reuse||customer();G.reuse=null;G.cust=c;mood(c,'happy');ui.bubble.classList.remove('on');drawScreen('Total','· · ·');
+    while(items.length<n){const p=pick(PRODUCTS);if(used.has(p[2]))continue;used.add(p[2]);items.push({name:p[0],art:p[1],kind:p[2],price:rnd(r.lo/r.u,hi/r.u)*r.u})}
+    total=sumOf(items.map(i=>i.price));
+    pay=(sp&&sp.id==='abuela'&&payMany(total,r))||(sp&&sp.id==='millo'&&payBig(total,r))||payFor(total,r.pay);
+    if(canMake(sumOf(pay)-total,r.d,r.u))break}
+  const T=(Math.max(m.Tmin,m.T0-(d-1)*2)+has('pac')*3+lvl('pac')*2)*(ev.pat||1)*(sp?sp.pat:1);
+  G.cur={items,total,orig:total,pay,paid:sumOf(pay),helped:false,sp,T,tLeft:T};
+  const c=G.reuse||customer(sp?sp.look:undefined);G.reuse=null;G.cust=c;mood(c,'happy');ui.bubble.classList.remove('on');drawScreen('Total','· · ·');info();calcUi();
   walkTo(c,0,()=>{
     if(G.cust!==c)return;
     items.forEach((it,i)=>{const o=product(it.kind);o.position.set(.25,1.25,-1.2);o.rotation.y=Math.random()*6;it.mesh=o;G.others.push(o);fly(o,V(.36+i*.17,1.0,-.74+(i%2)*.08),.45+i*.08,.18)});
-    pay.forEach((v,i)=>{const o=billMesh(v);o.position.set(-.25,1.2,-1.2);G.others.push(o);fly(o,V(-.3+i*.035,1.015+i*.007,-.78),.45+i*.06,.15,null,.35+i*.12)});
-    say(n>1?pick(['¡Hola! Me llevo todo esto.','Cobrame esto, porfa.','Buenas, ¿cuánto es todo?']):`¡Hola! Me das ${items[0].art}.`);
-    drawScreen('Total',n>1?'¿?':fmt(total));ticket();G.active=true;G.t0=performance.now();ui.app.classList.remove('locked')})}
+    pay.forEach((v,i)=>{const o=billMesh(v);o.position.set(-.25,1.2,-1.2);G.others.push(o);fly(o,V(-.3+(i%5)*.035,1.015+i*.007,-.78+Math.floor(i/5)*.06),.45+i*.05,.15,null,.35+i*.12)});
+    say(sp?sp.hi:n>1?pick(['¡Hola! Me llevo todo esto.','Cobrame esto, porfa.','Buenas, ¿cuánto es todo?']):`¡Hola! Me das ${items[0].art}.`,sp?2400:0);
+    if(sp&&sp.id!=='regatea')later(()=>{if(G.cust===c&&G.active)say(n>1?'Es todo esto.':`Me llevo ${items[0].art}.`)},2500);
+    if(sp&&sp.id==='regatea')later(haggle,1900);
+    drawScreen('Total',n>1&&!has('ojo')?'¿?':fmt(total));ticket();G.active=true;G.t0=performance.now();ui.app.classList.remove('locked');info()})}
+function haggle(){const c=G.cur;if(!G.active||!c||c.haggled)return;const r=G.rules;
+  for(const f of[.9,.85,.8]){const nt=Math.max(r.u,Math.round(c.total*f/r.u)*r.u);if(nt<c.total&&canMake(c.paid-nt,r.d,r.u)){c.total=nt;c.haggled=true;break}}
+  if(!c.haggled)return;SFX.help();say(`Dejámelo en ${fmt(c.total)}, ¿dale? Gracias.`,2600);ticket();drawScreen('Total',fmt(c.total));calcUi()}
 const ray=new T.Raycaster(),counterPlane=new T.Plane(new T.Vector3(0,1,0),-1.15);
 function dropPoint(x,y){const r=stage.getBoundingClientRect();ray.setFromCamera({x:(x-r.left)/r.width*2-1,y:-(y-r.top)/r.height*2+1},cam);const p=new T.Vector3();if(!ray.ray.intersectPlane(counterPlane,p))return null;p.x=Math.max(-1.2,Math.min(1.2,p.x));p.z=Math.max(-1.3,Math.min(.5,p.z));return p}
 function addBill(v,at){if(!G.active||G.paused)return;G.given.push(v);const o=billMesh(v),i=G.givenMesh.length;o.position.copy(at||CAM_SPOT());o.rotation.y=Math.random()*2;G.givenMesh.push(o);
   fly(o,V(.05+(Math.random()-.5)*.12,1.04+i*.007,-.32+(Math.random()-.5)*.06),.32,.22,null,(Math.random()-.5)*.6);SFX.bill();updSum()}
 function takeBack(all){if(!G.active||!G.given.length)return;do{G.given.pop();const o=G.givenMesh.pop();fly(o,CAM_SPOT(),.25,.1,()=>disposeObj(o))}while(all&&G.given.length);SFX.bill();updSum()}
+function useCalc(){const c=G.cur;if(!G.active||!c||c.calc||G.calcLeft<=0)return;c.calc=true;G.calcLeft--;SFX.help();calcUi();floatTxt('Vuelto: '+fmt(c.paid-c.total))}
 function give(){
   if(!G.active||G.paused)return;const c=G.cur,s=sumOf(G.given),need=c.paid-c.total;
   if(!G.given.length){say('¿Y mi vuelto?',1400);return}
@@ -422,40 +537,70 @@ function give(){
   if(hand&&!c.helped&&Math.random()<.4&&extra!==c.total){
     c.helped=true;G.active=false;SFX.help();say(`¡Pará! Tomá ${fmt(extra)} así me das más redondo.`);
     takeBackSilent();later(()=>{hand.forEach((v,i)=>{const o=billMesh(v);o.position.set(-.2,1.2,-1.2);G.others.push(o);fly(o,V(-.2+i*.04,1.02+i*.007,-.62),.4,.12,null,i*.3)});
-      c.paid+=extra;c.tLeft=Math.min(c.T,c.tLeft+4);const pl=$('#payLine');if(pl){pl.querySelector('b').textContent=fmt(c.paid);pl.classList.remove('bump');void pl.offsetWidth;pl.classList.add('bump')}G.active=true},700);return}
-  win()}
+      c.paid+=extra;c.tLeft=Math.min(c.T,c.tLeft+4);const pl=$('#payLine');if(pl){pl.querySelector('b').textContent=fmt(c.paid);pl.classList.remove('bump');void pl.offsetWidth;pl.classList.add('bump')}G.active=true;calcUi()},700);return}
+  win(need%R===0)}
 function takeBackSilent(){while(G.givenMesh.length){const o=G.givenMesh.pop();fly(o,CAM_SPOT(),.3,.1,()=>disposeObj(o))}G.given=[];updSum()}
 function wrong(over){
-  const c=G.cur;G.mistakes++;G.streak=0;c.tLeft-=3;SFX.bad();buzz([60,40,60]);hud();
-  say(over?'¡Esperá! Me diste de más.':'¡Esperá! Me diste de menos.',1800);floatTxt('−3 s',true);
+  const c=G.cur;G.mistakes++;SFX.bad();buzz([60,40,60]);
+  if(G.seguroLeft>0){G.seguroLeft--;floatTxt('Seguro de error');}else{G.streak=0;c.tLeft-=3;floatTxt('−3 s',true)}
+  hud();say(over?'¡Esperá! Me diste de más.':'¡Esperá! Me diste de menos.',1800);
   const u=G.cust.userData;mood(G.cust,'angry');tween(.6,k=>u.shake=Math.sin(k*Math.PI*6)*.35*(1-k),()=>{u.shake=0});takeBackSilent()}
-function win(){
+function win(round){
   const c=G.cur,m=MODES[modeIdx],cust=G.cust,u=cust.userData;G.active=false;ui.app.classList.add('locked');
-  G.served++;G.streak++;G.bestStreak=Math.max(G.bestStreak,G.streak);G.times.push((performance.now()-G.t0)/1000);if(c.helped)G.helps++;
-  const ratio=Math.max(0,c.tLeft/c.T),pts=Math.round((100*m.mult+ratio*100*m.mult+(c.helped?50*m.mult:0))*(1+Math.min(G.streak,10)*.1)*(expert?1.5:1));
-  G.score+=pts;hud();SFX.ok();buzz(30);floatTxt('+'+pts.toLocaleString('es-AR'));
+  G.served++;G.dayServed++;G.streak++;G.bestStreak=Math.max(G.bestStreak,G.streak);G.times.push((performance.now()-G.t0)/1000);if(c.helped)G.helps++;
+  const ratio=Math.max(0,c.tLeft/c.T),cap=has('racha')?15:10;
+  const mult=(1+Math.min(G.streak,cap)*.1)*(expert?1.5:1)*(1+.2*has('propina'))*((G.event&&G.event.pts)||1)*(c.sp?c.sp.pts:1)*(round?1+.5*has('redondo'):1)*(c.calc?.5:1);
+  const pts=Math.round((100*m.mult+ratio*100*m.mult+(c.helped?50*m.mult:0))*mult);
+  G.score+=pts;G.dayPts+=pts;hud();SFX.ok();buzz(30);floatTxt('+'+pts.toLocaleString('es-AR'));
   say(ratio>.7?pick(['¡Qué rápido! Gracias.','¡Volando! Gracias.']):pick(['¡Gracias!','¡Genial, gracias!','¡Buen día!']),1200);
   mood(cust,'happy');tween(.5,k=>u.jump=Math.sin(k*Math.PI)*.18,()=>u.jump=0);
   const handoff=()=>{G.givenMesh.forEach(o=>stash(o,-.28));c.items.forEach(it=>stash(it.mesh,.3));
-G.others.filter(o=>!c.items.some(it=>it.mesh===o)).forEach(o=>fly(o,CAM_SPOT(),.35,.1,()=>disposeObj(o)));G.givenMesh=[];G.given=[];G.others=[];updSum()};
+    G.others.filter(o=>!c.items.some(it=>it.mesh===o)).forEach(o=>fly(o,CAM_SPOT(),.35,.1,()=>disposeObj(o)));G.givenMesh=[];G.given=[];G.others=[];updSum()};
   later(handoff,250);
-  later(()=>{slipIdle();if(G.served%5===0)floatTxt('¡Más rápido!');walkTo(cust,4.3,()=>disposeObj(cust));later(next,450)},800)}
+  later(()=>{slipIdle();walkTo(cust,4.3,()=>disposeObj(cust));afterCustomer()},800)}
 function timeout(){
-  const cust=G.cust,u=cust.userData;G.active=false;ui.app.classList.add('locked');G.lives--;G.streak=0;hud();SFX.lose();buzz(200);
+  const c=G.cur,cust=G.cust,u=cust.userData;
+  if(G.esperaLeft>0&&!c.waited){G.esperaLeft--;c.waited=true;c.tLeft=6;c.T=Math.max(c.T,6);SFX.help();say('Bueno… te espero un poquito más.',1800);floatTxt('+6 s');return}
+  G.active=false;ui.app.classList.add('locked');G.lives--;G.streak=0;hud();SFX.lose();buzz(200);
   say('Ya fue, compro en otro lado.',1600);mood(cust,'angry');u.anger=1;
   later(()=>{G.givenMesh.forEach(o=>fly(o,CAM_SPOT(),.3,.1,()=>disposeObj(o)));G.others.forEach(o=>stash(o,o.geometry===billGeo?-.28:.3));G.givenMesh=[];G.others=[];G.given=[];updSum();slipIdle()},500);
-  later(()=>{walkTo(cust,-4.3,()=>disposeObj(cust));if(G.lives<=0)later(gameOver,400);else later(next,500)},1300)}
+  later(()=>{walkTo(cust,-4.3,()=>disposeObj(cust));if(G.lives<=0)later(gameOver,400);else afterCustomer()},1300)}
+function afterCustomer(){G.dayDone++;G.cur=null;info();calcUi();if(G.dayDone>=PER_DAY)later(endDay,700);else later(next,450)}
+function endDay(){
+  if(!G.on)return;G.cust=null;ui.bubble.classList.remove('on');
+  const opts=PERKS.filter(p=>has(p.id)<p.max&&(p.id!=='vida'||G.lives<5)&&(p.id!=='ojo'||MODES[modeIdx].items[1]>1||G.day>=3));
+  const three=[];while(three.length<3&&opts.length)three.push(opts.splice(Math.floor(Math.random()*opts.length),1)[0]);
+  $('#dayTitle').textContent=`Día ${G.day} terminado`;
+  $('#dayStats').textContent=`${G.dayServed} de ${PER_DAY} clientes atendidos · +${G.dayPts.toLocaleString('es-AR')} puntos`;
+  $('#perkOpts').innerHTML=three.map(p=>`<button class="perk" data-id="${p.id}"><b>${p.name}${has(p.id)?' · nivel '+(has(p.id)+1):''}</b><span>${p.desc}</span></button>`).join('');
+  SFX.ok();$('#dayEnd').hidden=false}
+function choosePerk(id){if(!G.on)return;G.perks[id]=(G.perks[id]||0)+1;if(id==='vida'){G.lives=Math.min(5,G.lives+1)}$('#dayEnd').hidden=true;hud();startDay()}
 function gameOver(){
   G.on=false;G.cust=null;const rec=G.score>(best[modeIdx]||0);if(rec){best[modeIdx]=G.score;store.set('best',best)}
+  const earned=Math.floor(G.score/250)+(G.day-1)*5;meta.coins+=earned;meta.bestDay[modeIdx]=Math.max(meta.bestDay[modeIdx]||0,G.day);saveMeta();
+  hemi.intensity=.8;sun.intensity=.85;warm.intensity=.45;G.event=null;updSum();calcUi();
   const acc=G.served+G.mistakes?Math.round(G.served/(G.served+G.mistakes)*100):0,avg=G.times.length?(sumOf(G.times)/G.times.length):0;
-  $('#overTitle').textContent='Fin del turno · '+MODES[modeIdx].name;$('#finalScore').textContent=G.score.toLocaleString('es-AR');
-  $('#recLine').innerHTML=rec&&G.score?'<span class="rec">¡Nuevo récord!</span>':'Récord: '+(best[modeIdx]||0).toLocaleString('es-AR');
+  $('#overTitle').textContent=`Llegaste al día ${G.day} · ${MODES[modeIdx].name}`;$('#finalScore').textContent=G.score.toLocaleString('es-AR');
+  $('#recLine').innerHTML=(rec&&G.score?'<span class="rec">¡Nuevo récord!</span> ':'Récord: '+(best[modeIdx]||0).toLocaleString('es-AR')+' · ')+`<b>+${earned} ahorros</b> para la tienda`;
   $('#stats').innerHTML=[[G.served,'clientes atendidos'],[acc+'%','vueltos correctos'],[avg.toFixed(1).replace('.',',')+' s','promedio por cliente'],[G.bestStreak,'mejor racha']].map(s=>`<div><b>${s[0]}</b><span>${s[1]}</span></div>`).join('');
   renderModes();$('#over').hidden=false;ui.bubble.classList.remove('on');idleCustomer()}
-function setPause(p){if(!G.on)return;G.paused=p;$('#pause').hidden=!p}
-function quit(){G.sid++;G.on=false;G.active=false;G.paused=false;$('#pause').hidden=true;ui.app.classList.add('locked');clearTable();ui.bubble.classList.remove('on');
+function setPause(p){if(!G.on||!$('#dayEnd').hidden)return;G.paused=p;
+  if(p){const l=PERKS.filter(x=>has(x.id)&&x.id!=='vida').map(x=>x.name+(has(x.id)>1?' ×'+has(x.id):''));$('#perkList').textContent=l.length?'Tus mejoras: '+l.join(', ')+'.':'Todavía no tenés mejoras: se eligen al terminar cada día.'}
+  $('#pause').hidden=!p}
+function quit(){G.sid++;G.on=false;G.active=false;G.paused=false;$('#pause').hidden=true;ui.app.classList.add('locked');clearTable();ui.bubble.classList.remove('on');ui.banner.classList.remove('on');
+  hemi.intensity=.8;sun.intensity=.85;warm.intensity=.45;G.event=null;updSum();calcUi();
   if(G.cust){const c=G.cust;G.cust=null;walkTo(c,4.3,()=>disposeObj(c))}renderModes();$('#menu').hidden=false;setTimeout(idleCustomer,600)}
 function idleCustomer(){if(G.on||G.cust)return;const c=customer();G.cust=c;mood(c,'happy');walkTo(c,0,()=>drawScreen('Hola','$0'))}
+/* tienda */
+function renderShop(){$('#coinsShop').textContent=meta.coins;
+  $('#shopList').innerHTML=SHOP.map(s=>{const l=lvl(s.id),max=l>=s.cost.length,cost=s.cost[l];
+    return`<div class="shopItem"><div><b>${s.name}${s.cost.length>1?` · ${l}/${s.cost.length}`:''}</b><span>${s.desc}</span></div><button class="buy" data-id="${s.id}" ${max||meta.coins<cost?'disabled':''}>${max?'Listo':cost+' ahorros'}</button></div>`}).join('')}
+$('#shopList').addEventListener('click',e=>{const b=e.target.closest('.buy');if(!b||b.disabled)return;const s=SHOP.find(x=>x.id===b.dataset.id),l=lvl(s.id),cost=s.cost[l];
+  if(cost==null||meta.coins<cost)return;meta.coins-=cost;meta.shop[s.id]=l+1;saveMeta();SFX.ok();renderShop();renderModes()});
+$('#shopBtn').addEventListener('click',()=>{renderShop();$('#menu').hidden=true;$('#shop').hidden=false});
+$('#shopClose').addEventListener('click',()=>{$('#shop').hidden=true;$('#menu').hidden=false});
+$('#perkOpts').addEventListener('click',e=>{const b=e.target.closest('.perk');if(b)choosePerk(b.dataset.id)});
+$('#calcBtn').addEventListener('click',useCalc);
 
 let drag=null,noClick=false;
 ui.bills.addEventListener('click',e=>{if(noClick){noClick=false;return}const b=e.target.closest('.bill');if(b)addBill(+b.dataset.v)});
@@ -468,7 +613,7 @@ function endDrag(e,cancel){if(!drag||e.pointerId!==drag.id)return;const d=drag;d
   if(!cancel&&overStage(e.clientX,e.clientY))addBill(d.v,dropPoint(e.clientX,e.clientY))}
 window.addEventListener('pointerup',e=>endDrag(e,false));window.addEventListener('pointercancel',e=>endDrag(e,true));
 $('#undo').addEventListener('click',()=>takeBack(false));$('#clear').addEventListener('click',()=>takeBack(true));$('#give').addEventListener('click',give);
-$('#play').addEventListener('click',start);$('#again').addEventListener('click',start);
+$('#play').addEventListener('click',start);$('#overShop').addEventListener('click',()=>{renderShop();$('#over').hidden=true;$('#shop').hidden=false});$('#again').addEventListener('click',start);
 $('#toMenu').addEventListener('click',()=>{$('#over').hidden=true;$('#menu').hidden=false});
 $('#pauseBtn').addEventListener('click',()=>setPause(true));$('#resume').addEventListener('click',()=>setPause(false));$('#quit').addEventListener('click',quit);
 document.addEventListener('visibilitychange',()=>{if(document.hidden&&G.on&&!G.paused)setPause(true)});

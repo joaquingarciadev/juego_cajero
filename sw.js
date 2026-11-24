@@ -1,5 +1,5 @@
 // Cajero 3D: guarda el juego para abrirlo sin conexión.
-const CACHE = 'cajero3d-v1';
+const CACHE = 'cajero3d-v2';
 const SHELL = ['./', './index.html', './manifest.webmanifest', './icons/icon.svg', './icons/icon-192.png', './icons/icon-512.png',
   'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js'];
 
