@@ -573,9 +573,11 @@ function give(){
   if(s!==need)return wrong(s>need);
   const R=G.rules.R,extra=R-need%R,hand=need%R?split(extra,G.rules.d):null;
   if(hand&&!c.helped&&Math.random()<.4&&extra!==c.total){
-    c.helped=true;G.active=false;SFX.help();say(`¡Pará! Tomá ${fmt(extra)} así me das más redondo.`);
+    c.helped=true;G.active=false;SFX.help();say(`¡Pará! Tomá ${fmt(extra)}, así te pago ${fmt(c.paid+extra)} y me das redondo.`,4200);
     takeBackSilent();later(()=>{hand.forEach((v,i)=>{const o=billMesh(v);o.position.set(-.2,1.2,-1.2);G.others.push(o);fly(o,V(-.2+i*.04,1.02+i*.007,-.62),.4,.12,null,i*.3)});
-      c.paid+=extra;c.tLeft=Math.min(c.T,c.tLeft+4);const pl=$('#payLine');if(pl){pl.querySelector('b').textContent=fmt(c.paid);pl.classList.remove('bump');void pl.offsetWidth;pl.classList.add('bump')}G.active=true;calcUi()},700);return}
+      c.paid+=extra;const pl=$('#payLine');if(pl){pl.querySelector('b').textContent=fmt(c.paid);pl.classList.remove('bump');void pl.offsetWidth;pl.classList.add('bump')}calcUi()},700);
+    // el reloj queda en pausa mientras habla; después vuelve al menos a la mitad y suma 4 s
+    later(()=>{c.tLeft=Math.max(c.tLeft,c.T*.5)+4;c.T=Math.max(c.T,c.tLeft);G.active=true},2000);return}
   win(need%R===0)}
 function takeBackSilent(){while(G.givenMesh.length){const o=G.givenMesh.pop();fly(o,CAM_SPOT(),.3,.1,()=>disposeObj(o))}G.given=[];updSum()}
 function wrong(over){
